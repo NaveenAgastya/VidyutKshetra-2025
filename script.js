@@ -12,21 +12,22 @@ document.addEventListener("DOMContentLoaded", function () {
 
 // Mobile Menu Functionality
 function initMobileMenu() {
+  const header = document.querySelector(".header");
   const mobileMenuBtn = document.querySelector(".mobile-menu-btn");
   const mainNav = document.querySelector(".main-nav");
   const navLinks = document.querySelectorAll(".main-nav a");
-
-  if (!mobileMenuBtn || !mainNav) return;
+  const logo = document.querySelector(".logo");
 
   mobileMenuBtn.addEventListener("click", function () {
     this.classList.toggle("active");
     mainNav.classList.toggle("active");
-    document.body.style.overflow = mainNav.classList.contains("active")
-      ? "hidden"
-      : "";
-  });
 
-  // Close menu when clicking outside
+    if (mainNav.classList.contains("active")) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+  });
   document.addEventListener("click", function (e) {
     if (
       mainNav.classList.contains("active") &&
@@ -39,11 +40,38 @@ function initMobileMenu() {
     }
   });
 
-  // Smooth scroll for nav links
+  let lastScrollTop = 0;
+  const scrollThreshold = 50;
+
+  function handleScroll() {
+    const currentScrollTop =
+      window.screenY || document.documentElement.scrollTop;
+
+    if (currentScrollTop > scrollThreshold) {
+      header.classList.add("scrolled");
+    } else {
+      header.classList.remove("scrolled");
+    }
+    updateActiveMenu();
+
+    lastScrollTop = currentScrollTop;
+  }
+
+  let scrollTimeout;
+  window.addEventListener("scroll", function () {
+    if (!scrollTimeout) {
+      scrollTimeout = setTimeout(function () {
+        handleScroll();
+        scrollTimeout = null;
+      }, 10);
+    }
+  });
+
   navLinks.forEach((link) => {
     link.addEventListener("click", function (e) {
       if (this.getAttribute("href").startsWith("#")) {
         e.preventDefault();
+
         const targetId = this.getAttribute("href");
         const targetSection = document.querySelector(targetId);
 
@@ -52,7 +80,7 @@ function initMobileMenu() {
           mobileMenuBtn.classList.remove("active");
           document.body.style.overflow = "";
 
-          const headerHeight = document.querySelector(".header").offsetHeight;
+          const headerHeight = header.offsetHeight;
           const targetPosition =
             targetSection.getBoundingClientRect().top +
             window.scrollY -
@@ -64,10 +92,60 @@ function initMobileMenu() {
           });
 
           history.pushState(null, null, targetId);
+
+          navLinks.forEach((navLink) => navLink.classList.remove("active"));
+          this.classList.add("active");
         }
       }
     });
   });
+
+  function updateActiveMenu() {
+    const sections = document.querySelectorAll("section[id]");
+    const scrollPosition = window.scrollY || document.documentElement.scrollTop;
+
+    if (sections.length > 0) {
+      let currentSection = "";
+      const headerHeight = header.offsetHeight;
+
+      sections.forEach((section) => {
+        const sectionTop = section.offsetTop - headerHeight - 100;
+        const sectionHeight = section.offsetHeight;
+
+        if (
+          scrollPosition >= sectionTop &&
+          scrollPosition < sectionTop + sectionHeight
+        ) {
+          currentSection = "#" + section.getAttribute("id");
+        }
+      });
+      navLinks.forEach((link) => {
+        link.classList.remove("active");
+        if (link.getAttribute("href") === currentSection) {
+          link.classList.add("active");
+        }
+      });
+    }
+  }
+
+  logo.addEventListener("click", function () {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  });
+
+  updateActiveMenu();
+
+  const preloadLink = document.createElement("div");
+  preloadLink.style.position = "absolute";
+  preloadLink.style.opacity = "0";
+  preloadLink.style.pointerEvents = "none";
+  preloadLink.innerHTML = '<a class="main-nav a:hover"></a>';
+  document.body.appendChild(preloadLink);
+  setTimeout(() => {
+    document.body.removeChild(preloadLink);
+  }, 100);
 }
 
 // Scroll to Top Button
