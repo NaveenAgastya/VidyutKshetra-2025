@@ -16,7 +16,7 @@ Join us in **Rajasuya Yaga**, the IPL-style auction, where teams fight to build 
 - **BGMI, Free Fire💻** – The Royal Battle
 - 
 ## 🚀 Live Demo
-🔗 [Live Website](#) (Add the deployed link here)
+🔗 [Live Website](#) 
 
 ## 🛠️ Installation
 1. **Clone the repo:**
