@@ -535,3 +535,27 @@ function showFeedback(message, isSuccess) {
     feedback.remove();
   }, 3000);
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+  const meta = document.querySelector('meta[name="viewport"]');
+  if (!meta) {
+    const newMeta = document.createElement("meta");
+    newMeta.name = "viewport";
+    newMeta.content =
+      "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no";
+    document.head.appendChild(newMeta);
+  } else {
+    meta.content =
+      "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no";
+  }
+
+  // Apply fix to main container/sections
+  const allSections = document.querySelectorAll(
+    "section, .container, .hero, .hero-content, #hero-heading"
+  );
+  allSections.forEach((section) => {
+    section.style.width = "100%";
+    section.style.maxWidth = "100%";
+    section.style.boxSizing = "border-box";
+  });
+});
