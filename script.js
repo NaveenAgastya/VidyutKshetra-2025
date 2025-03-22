@@ -18,25 +18,27 @@ function initMobileMenu() {
   const navLinks = document.querySelectorAll(".main-nav a");
   const logo = document.querySelector(".logo");
 
-  mobileMenuBtn.addEventListener("click", function () {
+  // Mobile menu toggle
+  mobileMenuBtn.addEventListener("click", function() {
     this.classList.toggle("active");
     mainNav.classList.toggle("active");
-  
+    
     if (mainNav.classList.contains("active")) {
-      document.body.style.overflow = "hidden";
-      mainNav.style.display = "flex"; // Change to flex instead of block
+      document.body.style.overflow = "hidden"; 
+      mainNav.style.display = "flex"; // Show menu
     } else {
-      document.body.style.overflow = "";
-      // Use setTimeout to delay hiding the menu until after the animation
+      document.body.style.overflow = ""; 
+      
       setTimeout(() => {
         if (!mainNav.classList.contains("active")) {
           mainNav.style.display = "none";
         }
-      }, 400); // Match this to your transition time
+      }, 400); 
     }
   });
-  
-  document.addEventListener("click", function (e) {
+
+  // Close menu when clicking outside
+  document.addEventListener("click", function(e) {
     if (
       mainNav.classList.contains("active") &&
       !mainNav.contains(e.target) &&
@@ -45,23 +47,46 @@ function initMobileMenu() {
       mainNav.classList.remove("active");
       mobileMenuBtn.classList.remove("active");
       document.body.style.overflow = "";
+      
+      // Wait for transition to finish before hiding
+      setTimeout(() => {
+        if (!mainNav.classList.contains("active")) {
+          mainNav.style.display = "none";
+        }
+      }, 400);
     }
   });
 
+  // Close menu when a link is clicked
+  navLinks.forEach((link) => {
+    link.addEventListener("click", function() {
+      mainNav.classList.remove("active");
+      mobileMenuBtn.classList.remove("active");
+      document.body.style.overflow = "";
+      
+      // Wait for transition to finish before hiding
+      setTimeout(() => {
+        if (!mainNav.classList.contains("active")) {
+          mainNav.style.display = "none";
+        }
+      }, 400);
+    });
+  });
+
+  // Scroll handling
   let lastScrollTop = 0;
   const scrollThreshold = 50;
 
   function handleScroll() {
-    const currentScrollTop = 
-      window.scrollY || document.documentElement.scrollTop;
-  
+    const currentScrollTop = window.scrollY || document.documentElement.scrollTop;
+
     if (currentScrollTop > scrollThreshold) {
       header.classList.add("scrolled");
     } else {
       header.classList.remove("scrolled");
     }
+    
     updateActiveMenu();
-  
     lastScrollTop = currentScrollTop;
   }
 
