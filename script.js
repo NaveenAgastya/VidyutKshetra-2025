@@ -21,15 +21,21 @@ function initMobileMenu() {
   mobileMenuBtn.addEventListener("click", function () {
     this.classList.toggle("active");
     mainNav.classList.toggle("active");
-
+  
     if (mainNav.classList.contains("active")) {
       document.body.style.overflow = "hidden";
-      mainNav.style.display = "block";
+      mainNav.style.display = "flex"; // Change to flex instead of block
     } else {
       document.body.style.overflow = "";
-      mainNav.style.display = "none"
+      // Use setTimeout to delay hiding the menu until after the animation
+      setTimeout(() => {
+        if (!mainNav.classList.contains("active")) {
+          mainNav.style.display = "none";
+        }
+      }, 400); // Match this to your transition time
     }
   });
+  
   document.addEventListener("click", function (e) {
     if (
       mainNav.classList.contains("active") &&
@@ -46,16 +52,16 @@ function initMobileMenu() {
   const scrollThreshold = 50;
 
   function handleScroll() {
-    const currentScrollTop =
-      window.screenY || document.documentElement.scrollTop;
-
+    const currentScrollTop = 
+      window.scrollY || document.documentElement.scrollTop;
+  
     if (currentScrollTop > scrollThreshold) {
       header.classList.add("scrolled");
     } else {
       header.classList.remove("scrolled");
     }
     updateActiveMenu();
-
+  
     lastScrollTop = currentScrollTop;
   }
 

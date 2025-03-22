@@ -312,11 +312,12 @@ img {
   .main-nav {
     position: fixed;
     top: 0;
+    right: -300px; 
     width: 75%;
     max-width: 300px;
     height: 100vh;
     background-color: rgba(0, 0, 0, 0.95);
-    display: flex;
+    display: none; 
     flex-direction: column;
     justify-content: center;
     padding: 2rem;
@@ -325,11 +326,9 @@ img {
     z-index: 100;
   }
 
-  .main-nav{
-    display: none;
-  }
   .main-nav.active {
     right: 0;
+    display: flex; 
   }
 
   .main-nav ul {
