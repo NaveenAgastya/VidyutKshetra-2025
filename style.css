@@ -326,6 +326,9 @@ img {
     z-index: 100;
   }
 
+  .main-nav{
+    display: none;
+  }
   .main-nav.active {
     right: 0;
   }

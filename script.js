@@ -24,8 +24,10 @@ function initMobileMenu() {
 
     if (mainNav.classList.contains("active")) {
       document.body.style.overflow = "hidden";
+      mainNav.style.display = "block";
     } else {
       document.body.style.overflow = "";
+      mainNav.style.display = "none"
     }
   });
   document.addEventListener("click", function (e) {
