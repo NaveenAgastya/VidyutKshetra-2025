@@ -312,7 +312,6 @@ img {
   .main-nav {
     position: fixed;
     top: 0;
-    right: -100%;
     width: 75%;
     max-width: 300px;
     height: 100vh;
