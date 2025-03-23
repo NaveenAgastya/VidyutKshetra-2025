@@ -434,7 +434,7 @@ img {
   padding: 2rem;
 }
 
-.logo {
+.title{
   font-family: var(--font-main);
   font-size: 4.5rem;
   font-weight: 700;
