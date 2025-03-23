@@ -551,7 +551,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Apply fix to main container/sections
   const allSections = document.querySelectorAll(
-    "section, .container, .hero, .hero-content, #hero-heading"
+    "section, .hero"
   );
   allSections.forEach((section) => {
     section.style.width = "100%";
