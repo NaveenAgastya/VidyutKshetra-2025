@@ -347,7 +347,7 @@ img {
     text-align: center;
   }
 
-  .logo {
+  .title {
     margin-top: 0;
   }
 
@@ -434,13 +434,13 @@ img {
   padding: 2rem;
 }
 
-.title{
+.title {
   font-family: var(--font-main);
   font-size: 2.5rem;
   font-weight: bolder;
   margin-bottom: 1rem;
   color: var(--gold);
-  letter-spacing: 4px;
+  letter-spacing: 2px;
   text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
   animation: glow 3s ease-in-out infinite alternate;
 }
