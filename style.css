@@ -440,7 +440,7 @@ img {
   font-weight: 700;
   margin-bottom: 1rem;
   color: var(--gold);
-  letter-spacing: 4px;
+  letter-spacing: 2px;
   text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
   animation: glow 3s ease-in-out infinite alternate;
 }
