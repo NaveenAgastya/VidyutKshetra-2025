@@ -58,23 +58,6 @@ function initMobileMenu() {
       }, 400);
     }
   });
-
-  // Close menu when a link is clicked
-  navLinks.forEach((link) => {
-    link.addEventListener("click", function() {
-      mainNav.classList.remove("active");
-      mobileMenuBtn.classList.remove("active");
-      document.body.style.overflow = "";
-      
-      // Wait for transition to finish before hiding
-      setTimeout(() => {
-        if (!mainNav.classList.contains("active")) {
-          mainNav.style.display = "none";
-        }
-      }, 400);
-    });
-  });
-
   // Scroll handling
   let lastScrollTop = 0;
   const scrollThreshold = 50;
