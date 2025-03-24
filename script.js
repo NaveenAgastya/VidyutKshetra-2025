@@ -8,6 +8,8 @@ document.addEventListener("DOMContentLoaded", function () {
   initSmoothScroll();
   initTimelineAnimation();
   initScrollAnimations();
+  initRegistrationForm();
+  applyLayoutFixes();
 });
 
 // Mobile Menu Functionality
@@ -536,7 +538,89 @@ function showFeedback(message, isSuccess) {
   }, 3000);
 }
 
-document.addEventListener("DOMContentLoaded", function () {
+// Registration Form with dynamic team fields
+function initRegistrationForm() {
+  const registrationForm = document.getElementById("registration-form");
+  if (!registrationForm) return;
+  
+  const interestSelect = document.getElementById("interest");
+  const teamFields2Player = document.getElementById("team-fields-2player");
+  const teamFields4Player = document.getElementById("team-fields-4player");
+  const nameInput = document.getElementById("name");
+  const nameDisplay2p = document.getElementById("user-name-display-2p");
+  const nameDisplay4p = document.getElementById("user-name-display-4p");
+  
+  // Define event types
+  const twoPlayerEvents = ["coding", "quiz", "escape", "startup"];
+  const fourPlayerEvents = ["bgmi", "freefire", "ipl", "treasure"];
+  
+  // Update name displays when user types their name
+  if (nameInput) {
+    nameInput.addEventListener("input", function() {
+      if (nameDisplay2p) nameDisplay2p.textContent = this.value;
+      if (nameDisplay4p) nameDisplay4p.textContent = this.value;
+    });
+  }
+  
+  // Listen for changes to the interest dropdown
+  if (interestSelect) {
+    interestSelect.addEventListener("change", function() {
+      const selectedValue = this.value;
+      
+      // Reset displays and required attributes
+      if (teamFields2Player) teamFields2Player.style.display = "none";
+      if (teamFields4Player) teamFields4Player.style.display = "none";
+      
+      // Toggle required attributes based on selection
+      toggleRequiredFields(false, false);
+      
+      // Show appropriate fields based on selection
+      if (twoPlayerEvents.includes(selectedValue)) {
+        if (teamFields2Player) teamFields2Player.style.display = "block";
+        toggleRequiredFields(true, false);
+        
+        // Update name display
+        if (nameDisplay2p && nameInput) nameDisplay2p.textContent = nameInput.value;
+      } else if (fourPlayerEvents.includes(selectedValue)) {
+        if (teamFields4Player) teamFields4Player.style.display = "block";
+        toggleRequiredFields(false, true);
+        
+        // Update name display
+        if (nameDisplay4p && nameInput) nameDisplay4p.textContent = nameInput.value;
+      }
+    });
+  }
+  
+  // Helper to toggle required attributes for form fields
+  function toggleRequiredFields(twoPlayer, fourPlayer) {
+    // Two player fields
+    setRequiredAttribute("team-name-2p", twoPlayer);
+    setRequiredAttribute("member2-2p", twoPlayer);
+    
+    // Four player fields
+    setRequiredAttribute("team-name-4p", fourPlayer);
+    setRequiredAttribute("member2-4p", fourPlayer);
+    setRequiredAttribute("member3-4p", fourPlayer);
+    setRequiredAttribute("member4-4p", fourPlayer);
+  }
+  
+  function setRequiredAttribute(elementId, isRequired) {
+    const element = document.getElementById(elementId);
+    if (element) element.required = isRequired;
+  }
+  
+  // Form submission - add user's name as member1
+  registrationForm.addEventListener("submit", function(e) {
+    // Add hidden field with user's name as member1
+    const hiddenInput = document.createElement("input");
+    hiddenInput.type = "hidden";
+    hiddenInput.name = "member1";
+    hiddenInput.value = nameInput ? nameInput.value : "";
+    this.appendChild(hiddenInput);
+  });
+}
+
+function applyLayoutFixes() {
   const meta = document.querySelector('meta[name="viewport"]');
   if (!meta) {
     const newMeta = document.createElement("meta");
@@ -558,4 +642,4 @@ document.addEventListener("DOMContentLoaded", function () {
     section.style.maxWidth = "100%";
     section.style.boxSizing = "border-box";
   });
-});
+}

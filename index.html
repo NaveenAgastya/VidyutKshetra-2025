@@ -506,38 +506,82 @@
 
       <!---------------------Registration---------------->
 
-      <section id="register" class="register">
-        <h2 class="section-title">Join The Event</h2>
+      <section id="register" class="register" aria-labelledby="register-heading">
+        <h2 id="register-heading" class="section-title">Join The Event</h2>
         <div class="register-form">
-          <div class="form-group">
-            <label for="name">Full Name</label>
-            <input type="text" id="name" name="name" required>
-          </div>
-          <div class="form-group">
-            <label for="email">Email Address</label>
-            <input type="email" id="email" name="email" required>
-          </div>
-          <div class="form-group">
-            <label for="email">Phone No</label>
-            <input type="email" id="email" name="email" required>
-          </div>
-          <div class="form-group">
-            <label for="interest">I'm most interested in</label>
-            <select id="interest" name="interest">
-              <option value="">Select your main interest</option>
-              <option value="ai">Coding and debugging</option>
-              <option value="blockchain">IT Quiz</option>
-              <option value="cloud">Treasure Hurt</option>
-              <option value="iot">BGMI</option>
-              <option value="security">Free Fire</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="message">Any special requirements?</label>
-            <textarea id="message" name="message" rows="3"></textarea>
-          </div>
-          <button type="submit" class="submit-btn">Reserve My Spot</button>
+          <form id="registration-form">
+            <div class="form-group">
+              <label for="name">Full Name</label>
+              <input type="text" id="name" name="name" required />
+            </div>
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <input type="email" id="email" name="email" required />
+            </div>
+            <div class="form-group">
+              <label for="phone">Phone Number</label>
+              <input type="tel" id="phone" name="phone" required />
+            </div>
+            <div class="form-group">
+              <label for="interest">I'm most interested in</label>
+              <select id="interest" name="interest">
+                <option value="">Select your main interest</option>
+                <option value="coding">Coding and Debugging</option>
+                <option value="quiz">IT Quiz</option>
+                <option value="treasure">Treasure Hunt</option>
+                <option value="bgmi">BGMI</option>
+                <option value="freefire">Free Fire</option>
+                <option value="ipl">IPL Auction</option>
+                <option value="escape">Escape Room</option>
+                <option value="startup">Start-up Pitch</option>
+              </select>
+            </div>
+  
+            <!-- Dynamic team fields for 2-player events - initially hidden -->
+            <div id="team-fields-2player" style="display: none">
+              <div class="form-group">
+                <label for="team-name-2p">Team Name</label>
+                <input type="text" id="team-name-2p" name="team-name" />
+              </div>
+              <div class="form-group">
+                <p class="team-info">
+                  You (<span id="user-name-display-2p"></span>) are registered as
+                  Team Member 1
+                </p>
+              </div>
+              <div class="form-group">
+                <label for="member2-2p">Team Member 2</label>
+                <input type="text" id="member2-2p" name="member2" />
+              </div>
+            </div>
+  
+            <!-- Dynamic team fields for 4-player events - initially hidden -->
+            <div id="team-fields-4player" style="display: none">
+              <div class="form-group">
+                <label for="team-name-4p">Team Name</label>
+                <input type="text" id="team-name-4p" name="team-name" />
+              </div>
+              <div class="form-group">
+                <p class="team-info">
+                  You (<span id="user-name-display-4p"></span>) are registered as
+                  Team Member 1
+                </p>
+              </div>
+              <div class="form-group">
+                <label for="member2-4p">Team Member 2</label>
+                <input type="text" id="member2-4p" name="member2" />
+              </div>
+              <div class="form-group">
+                <label for="member3-4p">Team Member 3</label>
+                <input type="text" id="member3-4p" name="member3" />
+              </div>
+              <div class="form-group">
+                <label for="member4-4p">Team Member 4</label>
+                <input type="text" id="member4-4p" name="member4" />
+              </div>
+            </div>
+            <button type="submit" class="submit-btn">Reserve My Spot</button>
+          </form>
         </div>
       </section>
   
