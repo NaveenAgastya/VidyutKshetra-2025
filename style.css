@@ -436,11 +436,12 @@ img {
 
 .title {
   font-family: var(--font-main);
-  font-size: 2.5rem;
-  font-weight: bolder;
-  margin-bottom: 1rem;
+  font-size: 4.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
   color: var(--gold);
-  letter-spacing: 2px;
+  letter-spacing: 4px;
+  text-align: center;
   text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
   animation: glow 3s ease-in-out infinite alternate;
 }
@@ -1711,7 +1712,7 @@ footer::before {
 }
 /* Media Queries */
 @media (max-width: 768px) {
-  .logo {
+  .title {
     font-size: 3rem;
   }
 
@@ -1752,7 +1753,12 @@ footer::before {
   section {
     padding: 3rem 1rem;
   }
-
+  .title {
+    font-size: 2.5rem;
+  }
+  .tagline {
+    font-size: 1rem;
+  }
   .countdown {
     flex-wrap: wrap;
   }
