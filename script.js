@@ -199,7 +199,7 @@ function initScrollToTop() {
 
 // Countdown Timer
 function initCountdown() {
-  const eventDate = new Date("April 11, 2025 09:00:00").getTime();
+  const eventDate = new Date("April 16, 2025 09:00:00").getTime();
 
   function updateCountdown() {
     const now = new Date().getTime();
