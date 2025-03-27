@@ -14,7 +14,6 @@ Join us in **Rajasuya Yaga**, the IPL-style auction, where teams fight to build 
 -**Yaksha Prashna 💻** – The Knowledge of IT
 - **Sanjeevini Quest 💻** – The Sacred Hunt
 - **BGMI, Free Fire💻** – The Royal Battle
-- 
 ## 🚀 Live Demo
 🔗 [Live Website]([#](https://naveenagastya.github.io/VidyutKshetra-2025/)) 
 
