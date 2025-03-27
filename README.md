@@ -16,7 +16,7 @@ Join us in **Rajasuya Yaga**, the IPL-style auction, where teams fight to build 
 - **BGMI, Free Fire💻** – The Royal Battle
 - 
 ## 🚀 Live Demo
-🔗 [Live Website](#) 
+🔗 [Live Website]([#](https://naveenagastya.github.io/VidyutKshetra-2025/)) 
 
 ## 🛠️ Installation
 1. **Clone the repo:**
