@@ -799,6 +799,236 @@ section {
   transform: translateY(-3px);
 }
 
+/*----------Event pop out styles---------*/
+.event-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
+}
+
+.event-popup.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.event-popup-content {
+  background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+  border-radius: 10px;
+  width: 90%;
+  max-width: 900px;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  position: relative;
+  animation: popupFadeIn 0.4s ease-out;
+}
+
+@keyframes popupFadeIn {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.close-popup {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: transparent;
+  border: none;
+  color: var(--gold);
+  font-size: 2rem;
+  cursor: pointer;
+  z-index: 10;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+}
+
+.close-popup:hover {
+  transform: rotate(90deg);
+}
+
+.event-popup-image {
+  height: 250px;
+  background-size: cover;
+  background-position: center;
+  border-radius: 10px 10px 0 0;
+  position: relative;
+}
+
+.event-popup-details {
+  padding: 2rem;
+}
+
+.event-popup-details h2 {
+  font-family: var(--font-main);
+  color: var(--gold);
+  margin-bottom: 1rem;
+  font-size: 2rem;
+}
+
+.event-popup-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  color: var(--accent);
+}
+
+.event-popup-meta span {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.event-popup-meta i {
+  color: var(--gold);
+}
+
+.event-popup-description {
+  margin-bottom: 2rem;
+  line-height: 1.8;
+}
+
+.event-popup-rules {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  border-left: 3px solid var(--gold);
+}
+
+.event-popup-rules h3 {
+  color: var(--gold);
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.event-popup-rules ul {
+  padding-left: 1.5rem;
+}
+
+.event-popup-rules li {
+  margin-bottom: 0.5rem;
+  position: relative;
+}
+
+.event-popup-rules li::before {
+  content: "•";
+  color: var(--gold);
+  position: absolute;
+  left: -1rem;
+}
+
+.event-popup-cta {
+  text-align: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .event-popup-content {
+    flex-direction: column;
+    width: 95%;
+  }
+
+  .event-popup-image {
+    height: 200px;
+  }
+
+  .event-popup-details {
+    padding: 1.5rem;
+  }
+}
+
+/*-------------- Notification -------------*/
+.selection-notification {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 15px 25px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.3s;
+  border-left: 4px solid var(--gold);
+}
+
+.selection-notification.show {
+  opacity: 1;
+}
+
+.selection-notification span {
+  color: var(--gold);
+  font-size: 1.5rem;
+}
+
+.selection-notification::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  width: 100%;
+  background: rgba(255, 215, 0, 0.3);
+  transform-origin: left;
+  animation: notification-progress 5s linear forwards;
+}
+
+@keyframes notification-progress {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+#interest.highlight {
+  animation: highlight-pulse 1.5s ease;
+  border-color: var(--gold);
+}
+
+@keyframes highlight-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(255, 215, 0, 0);
+  }
+  100% {
+    box-shadow: none;
+  }
+}
+
+
 /*-------------- Scedule --------------*/
 
 .schedule {
