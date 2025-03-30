@@ -720,8 +720,20 @@ function initEventPopups() {
 
   // Show popup with event details
   function showEventPopup(eventTitle) {
-    const eventData = eventsData[eventTitle];
-    if (!eventData) return;
+    const mainTitle = eventTitle.split('(')[0].trim();
+    let eventData = eventsData[eventTitle];
+    
+    if (!eventData) {
+      const possibleKey = Object.keys(eventsData).find(key => 
+        key.startsWith(mainTitle) || eventTitle.startsWith(key)
+      );
+      eventData = possibleKey ? eventsData[possibleKey] : null;
+    }
+    
+    if (!eventData) {
+      console.error(`No data found for event: ${eventTitle}`);
+      return;
+    }
   
     // Set basic event information
     document.getElementById("popupEventTitle").textContent = eventTitle;
