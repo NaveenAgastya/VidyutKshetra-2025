@@ -553,7 +553,7 @@ function initEventPopups() {
 
   // Event data
   const eventsData = {
-    "HackSutra": {
+    "HackSutra (Coding & debugging)": {
       image: "./Images/Quiz.jpg",
       date: "April 16, 2025",
       duration: "1.5 hours (11:00AM - 12:30PM)",
