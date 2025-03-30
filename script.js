@@ -8,7 +8,6 @@ document.addEventListener("DOMContentLoaded", function () {
   initSmoothScroll();
   initTimelineAnimation();
   initScrollAnimations();
-  applyLayoutFixes();
   initEventPopups();
 });
 
@@ -521,7 +520,7 @@ function showFeedback(message, isSuccess) {
   }, 3000);
 }
 
-function applyLayoutFixes(){
+document.addEventListener("DOMContentLoaded", function () {
   // Fix for viewport width issues
   const meta = document.querySelector('meta[name="viewport"]');
   if (!meta) {
@@ -544,7 +543,7 @@ function applyLayoutFixes(){
     section.style.maxWidth = "100%";
     section.style.boxSizing = "border-box";
   });
-}
+});
 
 //Function to popup for events description
 function initEventPopups() {
