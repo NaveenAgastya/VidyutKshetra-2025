@@ -8,8 +8,8 @@ document.addEventListener("DOMContentLoaded", function () {
   initSmoothScroll();
   initTimelineAnimation();
   initScrollAnimations();
-  initEventPopups();
   applyLayoutFixes();
+  initEventPopups();
 });
 
 // Mobile Menu Functionality
