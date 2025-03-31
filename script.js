@@ -20,26 +20,26 @@ function initMobileMenu() {
   const logo = document.querySelector(".logo");
 
   // Mobile menu toggle
-  mobileMenuBtn.addEventListener("click", function() {
+  mobileMenuBtn.addEventListener("click", function () {
     this.classList.toggle("active");
     mainNav.classList.toggle("active");
-    
+
     if (mainNav.classList.contains("active")) {
-      document.body.style.overflow = "hidden"; 
+      document.body.style.overflow = "hidden";
       mainNav.style.display = "flex"; // Show menu
     } else {
-      document.body.style.overflow = ""; 
-      
+      document.body.style.overflow = "";
+
       setTimeout(() => {
         if (!mainNav.classList.contains("active")) {
           mainNav.style.display = "none";
         }
-      }, 400); 
+      }, 400);
     }
   });
 
   // Close menu when clicking outside
-  document.addEventListener("click", function(e) {
+  document.addEventListener("click", function (e) {
     if (
       mainNav.classList.contains("active") &&
       !mainNav.contains(e.target) &&
@@ -48,7 +48,7 @@ function initMobileMenu() {
       mainNav.classList.remove("active");
       mobileMenuBtn.classList.remove("active");
       document.body.style.overflow = "";
-      
+
       // Wait for transition to finish before hiding
       setTimeout(() => {
         if (!mainNav.classList.contains("active")) {
@@ -62,14 +62,15 @@ function initMobileMenu() {
   const scrollThreshold = 50;
 
   function handleScroll() {
-    const currentScrollTop = window.scrollY || document.documentElement.scrollTop;
+    const currentScrollTop =
+      window.scrollY || document.documentElement.scrollTop;
 
     if (currentScrollTop > scrollThreshold) {
       header.classList.add("scrolled");
     } else {
       header.classList.remove("scrolled");
     }
-    
+
     updateActiveMenu();
     lastScrollTop = currentScrollTop;
   }
@@ -565,9 +566,9 @@ function initEventPopups() {
         "Coding and Debugging competition",
         "2 rounds: Knowledge & Restoration, Creation",
         "Summon your coding powers on the HackerRank battlefield",
-        "Registration fee: ₹250"
+        "Registration fee: ₹250",
       ],
-      contact: ["Naveena N A: 9110677146", "Mukund Kumar G: 6362070659"]
+      contact: ["Naveena N A: 9110677146", "Mukund Kumar G: 6362070659"],
     },
     "KuruKshetra 1 (BGMI)": {
       image: "./Images/BGMI.jpg",
@@ -583,16 +584,20 @@ function initEventPopups() {
         "All warriors must prepare their battlegrounds in advance",
         "The use of forbidden arts will result in banishment from the tournament",
         "Warriors should come equipped with all necessary battle gear",
-        "Registration fee: ₹400"
+        "Registration fee: ₹400",
       ],
-      contact: ["Harsha L: 9606245398", "Gagan A M: 8431642756", "Kiran R: 9880967408"]
+      contact: [
+        "Harsha L: 9606245398",
+        "Gagan A M: 8431642756",
+        "Kiran R: 9880967408",
+      ],
     },
     "Sanjeevini Quest (Treasure Hunt)": {
       image: "./Images/TreasureHunt.jpg",
       date: "April 17, 2025",
       duration: "2.5 hours (2:00PM - 4:30PM)",
       team: "2-4 members",
-      registrationValue: "treasurehunt",
+      registrationValue: "treasure",
       description:
         "Following in the footsteps of Lord Hanuman's legendary journey to find the Sanjeevani herb to save Lakshmana, teams must embark on an epic treasure hunt requiring wit, courage, and teamwork to overcome obstacles and find the sacred prize.",
       rules: [
@@ -602,16 +607,16 @@ function initEventPopups() {
         "Time limits bind all seekers to the mortal realm",
         "The first team to retrieve the Sanjeevani shall be crowned victorious",
         "In case of a tie, the speed of previous trials shall determine the victor",
-        "Registration fee: ₹400"
+        "Registration fee: ₹400",
       ],
-      contact: ["Mukund Kumar G: 6362070659"]
+      contact: ["Mukund Kumar G: 6362070659"],
     },
     "RajaSuya Yaga (IPL Auction)": {
       image: "./Images/IPLAuction.jpg",
       date: "April 16, 2025",
       duration: "4.5 hours (12:00PM - 4:30PM)",
       team: "4 members",
-      registrationValue: "iplauction",
+      registrationValue: "ipl",
       description:
         "Just as Emperor Yudhishthira performed the RajaSuya sacrifice to establish supremacy, modern strategists must complete this ritual of team selection and resource management to build a cricket empire worthy of the gods.",
       rules: [
@@ -621,16 +626,16 @@ function initEventPopups() {
         "Each kingdom begins with 100 Crore golden coins from the royal treasury",
         "Players shall be offered to the kingdoms in divine order: Celestial Stars, Mighty Strikers, Mystical Bowlers, Divine All-Rounders, Keeper of Wickets, and Rising Talents",
         "Kingdoms must assemble their forces with wisdom and foresight",
-        "Registration fee: ₹400"
+        "Registration fee: ₹400",
       ],
-      contact: ["Naveena N A: 9110677146", "Kiran R: 9880967408"]
+      contact: ["Naveena N A: 9110677146", "Kiran R: 9880967408"],
     },
     "Yaksha Prashna (IT Quiz)": {
       image: "./Images/ITQuiz.jpg",
       date: "April 17, 2025",
       duration: "2 hours (10:00AM - 12:00 Noon)",
       team: "2 members",
-      registrationValue: "itquiz",
+      registrationValue: "quiz",
       description:
         "Just as the Yaksha tested Yudhishthira with profound questions before granting access to the sacred lake, participants must prove their technical knowledge through increasingly challenging riddles of IT wisdom.",
       rules: [
@@ -641,9 +646,9 @@ function initEventPopups() {
         "Unanswered questions pass like the wind to the next council",
         "Councils must race to answer the Yaksha's most challenging riddles",
         "The first to signal shall attempt an answer with no second chances",
-        "Registration fee: ₹250"
+        "Registration fee: ₹250",
       ],
-      contact: ["Naveena N A: 9110677146", "Mukund Kumar G: 6362070659"]
+      contact: ["Naveena N A: 9110677146", "Mukund Kumar G: 6362070659"],
     },
     "KuruKshetra 2 (Free Fire)": {
       image: "./Images/FreeFire.jpg",
@@ -659,16 +664,20 @@ function initEventPopups() {
         "All warriors must prepare their battlegrounds in advance",
         "The use of forbidden arts will result in banishment from the tournament",
         "Warriors should come equipped with all necessary battle gear",
-        "Registration fee: ₹300"
+        "Registration fee: ₹300",
       ],
-      contact: ["Varun L J: 8217679129", "Gagan A M: 8431642756", "Kiran R: 9880967408"]
+      contact: [
+        "Varun L J: 8217679129",
+        "Gagan A M: 8431642756",
+        "Kiran R: 9880967408",
+      ],
     },
     "Chakravyuha (Escape Room)": {
       image: "./Images/EscapeRoom.jpg",
       date: "April 16, 2025",
       duration: "2 hours (11:00AM - 1:00PM)",
       team: "2 members",
-      registrationValue: "escaperoom",
+      registrationValue: "escape",
       description:
         "Like Abhimanyu navigating the complex Chakravyuha formation in the Mahabharata, teams must solve intricate puzzles and break through layers of challenges to escape from this modern labyrinth of logical barriers.",
       rules: [
@@ -677,9 +686,9 @@ function initEventPopups() {
         "The depths of each challenge shall be revealed only at the moment of truth",
         "Only the most skilled navigators shall advance to the inner sanctum",
         "Time is both ally and enemy in this divine challenge",
-        "Registration fee: ₹200"
+        "Registration fee: ₹200",
       ],
-      contact: ["Varsha: 7892293986", "Harshitha G: 6363196128"]
+      contact: ["Varsha: 7892293986", "Harshitha G: 6363196128"],
     },
     "DevaJanma (Start Up)": {
       image: "./Images/StartUp.jpg",
@@ -695,10 +704,14 @@ function initEventPopups() {
         "Presentations must adhere to the sacred format and time constraints",
         "The judgment of the divine council is final and absolute",
         "Using another's ideas as your own will invoke the curse of disqualification",
-        "Registration fee: ₹200"
+        "Registration fee: ₹200",
       ],
-      contact: ["Naveena N A: 9110677146", "Mukund Kumar G: 6362070659", "Harsha L: 9606245398"]
-    }
+      contact: [
+        "Naveena N A: 9110677146",
+        "Mukund Kumar G: 6362070659",
+        "Harsha L: 9606245398",
+      ],
+    },
   };
 
   // Add view more button to each event card
@@ -720,101 +733,123 @@ function initEventPopups() {
 
   // Show popup with event details
   function showEventPopup(eventTitle) {
-    const mainTitle = eventTitle.split('(')[0].trim();
     let eventData = eventsData[eventTitle];
-    
+
     if (!eventData) {
-      const possibleKey = Object.keys(eventsData).find(key => 
-        key.startsWith(mainTitle) || eventTitle.startsWith(key)
-      );
-      eventData = possibleKey ? eventsData[possibleKey] : null;
+      const cleanTitle = eventTitle.replace(/\(/, " (").trim();
+      eventData = eventsData[cleanTitle];
+
+      if (!eventData) {
+        const mainTitle = eventTitle.split("(")[0].trim();
+        const matchingKey = Object.keys(eventsData).find(
+          (key) =>
+            key.startsWith(mainTitle) ||
+            key.toLowerCase() === mainTitle.toLowerCase() ||
+            key.replace(/\s+/g, "") === mainTitle.replace(/\s+/g, "")
+        );
+
+        if (matchingKey) {
+          eventData = eventsData[matchingKey];
+        }
+      }
     }
-    
+
     if (!eventData) {
-      console.error(`No data found for event: ${eventTitle}`);
+      console.error(`No event data found for: ${eventTitle}`);
+      console.log("Available events:", Object.keys(eventsData));
       return;
     }
-  
-    // Set basic event information
+
     document.getElementById("popupEventTitle").textContent = eventTitle;
     document.getElementById(
       "popupEventImage"
     ).style.backgroundImage = `url(${eventData.image})`;
     document.getElementById("popupEventDate").textContent = eventData.date;
-    document.getElementById("popupEventDuration").textContent = eventData.duration;
+    document.getElementById("popupEventDuration").textContent =
+      eventData.duration;
     document.getElementById("popupEventTeam").textContent = eventData.team;
-    document.getElementById("popupEventDescription").textContent = eventData.description;
-  
-    // Set rules
+    document.getElementById("popupEventDescription").textContent =
+      eventData.description;
+
     const rulesList = document.getElementById("popupEventRules");
     rulesList.innerHTML = "<h3>Rules & Guidelines</h3><ul></ul>";
-    
+
     eventData.rules.forEach((rule) => {
       const li = document.createElement("li");
       li.textContent = rule;
       rulesList.querySelector("ul").appendChild(li);
     });
-  
-    // Add contact information section
+
     if (eventData.contact && eventData.contact.length > 0) {
       const contactSection = document.createElement("div");
       contactSection.className = "event-contact-info";
       contactSection.innerHTML = "<h3>Contact Coordinators</h3><ul></ul>";
-      
+
       eventData.contact.forEach((contact) => {
         const li = document.createElement("li");
         li.textContent = contact;
         contactSection.querySelector("ul").appendChild(li);
       });
-      
-      // Append contact section after rules or replace existing one
-      const existingContactSection = document.querySelector(".event-contact-info");
+
+      const existingContactSection = document.querySelector(
+        ".event-contact-info"
+      );
       if (existingContactSection) {
         existingContactSection.replaceWith(contactSection);
       } else {
         rulesList.after(contactSection);
       }
     }
-  
-    // Extract registration fee from rules and display it prominently
-    const feeRule = eventData.rules.find(rule => rule.includes("₹"));
+
+    const feeRule = eventData.rules.find((rule) => rule.includes("₹"));
     if (feeRule) {
       const feeAmount = feeRule.match(/₹(\d+)/)[1];
-      const feeDisplay = document.getElementById("popupEventFee") || document.createElement("div");
+      const feeDisplay =
+        document.getElementById("popupEventFee") ||
+        document.createElement("div");
       feeDisplay.id = "popupEventFee";
       feeDisplay.className = "event-fee";
       feeDisplay.innerHTML = `<strong>Registration Fee:</strong> ₹${feeAmount}`;
-      
-      // Insert fee display after the team size information
+
       const teamInfo = document.getElementById("popupEventTeam");
-      if (teamInfo.nextElementSibling) {
-        teamInfo.parentNode.insertBefore(feeDisplay, teamInfo.nextElementSibling);
-      } else {
-        teamInfo.parentNode.appendChild(feeDisplay);
+      if (teamInfo && teamInfo.parentNode) {
+        if (teamInfo.nextElementSibling) {
+          teamInfo.parentNode.insertBefore(
+            feeDisplay,
+            teamInfo.nextElementSibling
+          );
+        } else {
+          teamInfo.parentNode.appendChild(feeDisplay);
+        }
       }
     }
-    
-    // Set up the registration button
+
     const registerBtn = document.querySelector(".event-popup-cta .btn");
-    registerBtn.setAttribute("data-event", eventData.registrationValue);
-    registerBtn.textContent = "Reserve Your Slot";
-    registerBtn.classList.add("register-from-popup");
-  
-    // Display the popup
+    if (registerBtn) {
+      registerBtn.setAttribute("data-event", eventData.registrationValue);
+      registerBtn.textContent = "Reserve Your Slot";
+      registerBtn.classList.add("register-from-popup");
+    }
+
     const eventPopup = document.getElementById("eventPopup");
-    eventPopup.classList.add("active");
-    document.body.style.overflow = "hidden";
+    if (eventPopup) {
+      eventPopup.classList.add("active");
+      document.body.style.overflow = "hidden";
+    }
   }
 
-  // Scroll to registration and select event
   function scrollToRegistration(eventValue) {
-    eventPopup.classList.remove("active");
-    document.body.style.overflow = "";
+    const eventPopup = document.getElementById("eventPopup");
+    if (eventPopup && eventPopup.classList.contains("active")) {
+      eventPopup.classList.remove("active");
+      document.body.style.overflow = "";
+    }
 
-    const registerSection = document.getElementById("reserve-interest");
+    // Find registration section
+    const registerSection = document.getElementById("reserve");
     if (registerSection) {
-      const headerHeight = document.querySelector(".header").offsetHeight;
-      const targetPosition = registerSection.offsetTop - headerHeight;
+      const headerHeight = document.querySelector(".header")?.offsetHeight || 0;
+      const targetPosition = registerSection.offsetTop - headerHeight - 20;
 
       window.scrollTo({
         top: targetPosition,
@@ -825,14 +860,23 @@ function initEventPopups() {
         const interestSelect = document.getElementById("reserve-interest");
         if (interestSelect) {
           interestSelect.value = eventValue;
+
           const event = new Event("change");
           interestSelect.dispatchEvent(event);
 
-          const eventName =
-            interestSelect.options[interestSelect.selectedIndex].text;
-          showSelectionNotification(eventName);
+          const selectedOption = Array.from(interestSelect.options).find(
+            (option) => option.value === eventValue
+          );
 
-          document.querySelector("input")?.focus();
+          if (selectedOption) {
+            const eventName = selectedOption.text;
+            showSelectionNotification(eventName);
+          }
+
+          const firstInput = document.querySelector("#reservation-form input");
+          if (firstInput) {
+            firstInput.focus();
+          }
         }
       }, 800);
     }
@@ -875,7 +919,10 @@ function initEventPopups() {
 
 function showSelectionNotification(eventName) {
   const existingNotif = document.querySelector(".selection-notification");
-  if (existingNotif) existingNotif.remove();
+  if (existingNotif) {
+    existingNotif.classList.remove("show");
+    setTimeout(() => existingNotif.remove(), 300);
+  }
 
   const notification = document.createElement("div");
   notification.className = "selection-notification";
@@ -885,11 +932,14 @@ function showSelectionNotification(eventName) {
   `;
   document.body.appendChild(notification);
 
+  notification.setAttribute("role", "alert");
+  notification.setAttribute("aria-live", "polite");
+
   setTimeout(() => {
     notification.classList.add("show");
   }, 100);
 
-  setTimeout(() => {
+  const dismissTimer = setTimeout(() => {
     notification.classList.remove("show");
     setTimeout(() => {
       notification.remove();
@@ -897,9 +947,18 @@ function showSelectionNotification(eventName) {
   }, 5000);
 
   notification.addEventListener("click", () => {
+    clearTimeout(dismissTimer);
     notification.classList.remove("show");
     setTimeout(() => {
       notification.remove();
     }, 300);
   });
+
+  const interestSelect = document.getElementById("reserve-interest");
+  if (interestSelect) {
+    interestSelect.classList.add("highlight");
+    setTimeout(() => {
+      interestSelect.classList.remove("highlight");
+    }, 1500);
+  }
 }
