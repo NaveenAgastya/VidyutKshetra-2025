@@ -7,9 +7,10 @@ import {
   query,
   doc,
   updateDoc,
-  serverTimestamp 
+  serverTimestamp,
+  limit,
+  where 
 } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js";
 
 document.addEventListener("DOMContentLoaded", function () {
 
@@ -19,23 +20,22 @@ document.addEventListener("DOMContentLoaded", function () {
   const firebaseConfig = {
     apiKey: "AIzaSyD-M5JKGaaEKOBGx_o-BzTHvPpqAyvLyc",
     authDomain: "vidyutkshetra.firebaseapp.com",
-    databaseURL: "https://vidyutkshetra-default-rtdb.firebaseio.com",
     projectId: "vidyutkshetra",
-    storageBucket: "vidyutkshetra.firebasestorage.app",
     messagingSenderId: "678792001265",
     appId: "1:678792001265:web:10c8f7b15dc6df1b8d9b50",
-    measurementId: "G-XPD5TJ4ELZ"
   };
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
-  const storage = getStorage(app);
-
 
   // Constants
-  const MAX_FILE_SIZE_MB = 2; // Maximum file size in MB
-  const COMPRESSION_QUALITY = 0.6; // Image compression quality (0.1 to 1)
-  const MAX_IMAGE_WIDTH = 1200; // Maximum width for images
+  const MAX_FILE_SIZE_MB = 0.5;
+  const COMPRESSION_QUALITY = 0.4;
+  const MAX_IMAGE_WIDTH = 800;
+  const MAX_QUERY_LIMIT = 50;
+
+  // Single collection for all registrations
+  const REGISTRATIONS_COLLECTION = "registrations";
 
   const eventPrices = {
     Coding: 199,
@@ -59,6 +59,9 @@ document.addEventListener("DOMContentLoaded", function () {
     "Startup": "VK-DJ"
   };
 
+  // Cache for storing registration counts to minimize Firestore reads
+  const registrationCounts = {};
+
   document.getElementById("reservation-form").addEventListener("submit", async function (e) {
     e.preventDefault();
 
@@ -73,28 +76,50 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     const eventCode = eventCodes[interest];
-    const eventRef = collection(db, "registrations", interest, "participants");
+    const registrationsRef = collection(db, REGISTRATIONS_COLLECTION);
 
     try {
-      const q = query(eventRef);
-      const querySnapshot = await getDocs(q);
-      const count = querySnapshot.size + 1;
+      // Check if we have a cached count
+      if (!registrationCounts[interest]) {
+        // Query with limit to avoid excessive reads
+        const q = query(
+          registrationsRef, 
+          where("event", "==", interest),
+          limit(MAX_QUERY_LIMIT)
+        );
+        const querySnapshot = await getDocs(q);
+        registrationCounts[interest] = querySnapshot.size;
+      }
+      
+      // Increment the count
+      registrationCounts[interest]++;
+      const count = registrationCounts[interest];
       const uniqueID = `${eventCode}-${String(count).padStart(3, "0")}`;
 
-      // Store in Firestore
-      await addDoc(eventRef, {
+      // Store in Firestore - single document with minimal fields
+      const docRef = await addDoc(registrationsRef, {
         name,
         email,
         phone,
         event: interest,
-        eventCode,
+        eventName: document.getElementById("reserve-interest").options[
+          document.getElementById("reserve-interest").selectedIndex
+        ].text,
         uniqueID,
         timestamp: serverTimestamp(),
-        registrationStatus: "reserved",
+        status: "r", // r = reserved, p = paid, o = on-spot
+        // Initialize fields to be populated later
+        team: null,
+        members: [name], // Add lead member by default
+        amount: eventPrices[interest],
+        txnId: null,
+        paymentScreenshot: null, // Will store base64 image directly
+        paymentTimestamp: null
       });
 
       // Set current reservation
       currentReservation = {
+        id: docRef.id, // Store the Firestore document ID for easier updates
         name,
         email,
         phone,
@@ -151,32 +176,45 @@ document.addEventListener("DOMContentLoaded", function () {
       `You've chosen on-spot registration. Please note your key: ${key}`,
       "info"
     );
-    updateRegistrationStatus(currentReservation.event, currentReservation.uniqueID, "on-spot");
+    updateRegistrationStatus(currentReservation.id, "o");
   });
 
-  // Update registration status in Firestore
-  async function updateRegistrationStatus(eventType, uniqueID, status) {
+  // Update registration status in Firestore - simplified with direct document update
+  async function updateRegistrationStatus(docId, status) {
     try {
-      const eventRef = collection(db, "registrations", eventType, "participants");
-      const q = query(eventRef);
-      const querySnapshot = await getDocs(q);
-      
-      let docId = null;
-      querySnapshot.forEach((doc) => {
-        if (doc.data().uniqueID === uniqueID) {
-          docId = doc.id;
-        }
+      const docRef = doc(db, REGISTRATIONS_COLLECTION, docId);
+      await updateDoc(docRef, {
+        status: status,
+        updated: serverTimestamp()
       });
-      
-      if (docId) {
-        const docRef = doc(db, "registrations", eventType, "participants", docId);
-        await updateDoc(docRef, {
-          registrationStatus: status,
-          lastUpdated: serverTimestamp()
-        });
-      }
     } catch (error) {
       console.error("Error updating status:", error);
+    }
+  }
+
+  // Find registration by unique ID
+  async function findRegistrationByUniqueID(uniqueID) {
+    try {
+      const registrationsRef = collection(db, REGISTRATIONS_COLLECTION);
+      const q = query(
+        registrationsRef,
+        where("uniqueID", "==", uniqueID),
+        limit(1)
+      );
+      
+      const querySnapshot = await getDocs(q);
+      if (querySnapshot.empty) {
+        return null;
+      }
+      
+      const doc = querySnapshot.docs[0];
+      return {
+        id: doc.id,
+        ...doc.data()
+      };
+    } catch (error) {
+      console.error("Error finding registration:", error);
+      return null;
     }
   }
 
@@ -282,7 +320,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("file-name").textContent = file.name;
   });
 
-  // Compress image function
+  // Compress image and convert to base64 for storage in Firestore
   function compressImage(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -310,14 +348,9 @@ document.addEventListener("DOMContentLoaded", function () {
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
           
-          // Get compressed image as Blob
-          canvas.toBlob(
-            (blob) => {
-              resolve(blob);
-            },
-            file.type,
-            COMPRESSION_QUALITY
-          );
+          // Get compressed image as base64 string
+          const base64Image = canvas.toDataURL(file.type, COMPRESSION_QUALITY);
+          resolve(base64Image);
         };
         
         img.onerror = function() {
@@ -359,62 +392,31 @@ document.addEventListener("DOMContentLoaded", function () {
     const paymentScreenshotFile = document.getElementById("payment-screenshot").files[0];
     
     try {
-      // 1. Upload payment screenshot to Firebase Storage if available
-      let screenshotURL = "";
+      // Store data to update
+      const updateData = {
+        team: teamName,
+        members: teamMembers,
+        txnId: transactionId,
+        paymentTimestamp: serverTimestamp(),
+        status: "p"  // p = paid/pending confirmation
+      };
+      
+      // Process and store screenshot if provided
       if (paymentScreenshotFile) {
-        // Compress image before uploading
-        const compressedImageBlob = await compressImage(paymentScreenshotFile);
+        // Show progress indicator
+        showNotification("Processing image...", "info");
         
-        // Create a new File object with the compressed data
-        const compressedFile = new File(
-          [compressedImageBlob], 
-          paymentScreenshotFile.name, 
-          { type: paymentScreenshotFile.type }
-        );
+        // Compress image and convert to base64
+        const base64Image = await compressImage(paymentScreenshotFile);
         
-        // Log compression results
-        console.log(`Original size: ${paymentScreenshotFile.size / 1024} KB, Compressed size: ${compressedFile.size / 1024} KB`);
-        
-        const storageRef = ref(storage, `payment-proofs/${currentReservation.uniqueID}-${Date.now()}`);
-        await uploadBytes(storageRef, compressedFile);
-        screenshotURL = await getDownloadURL(storageRef);
+        // Store base64 image directly in document
+        updateData.paymentScreenshot = base64Image;
       }
       
-      // 2. Create payment record in Firestore
-      const paymentRef = collection(db, "payments");
-      const paymentData = {
-        uniqueID: currentReservation.uniqueID,
-        event: currentReservation.event,
-        eventName: currentReservation.eventName,
-        teamName: teamName,
-        teamMembers: teamMembers,
-        amount: currentReservation.price,
-        transactionId: transactionId,
-        paymentProofURL: screenshotURL,
-        timestamp: serverTimestamp(),
-        paymentStatus: "pending",  // Can be updated to "verified" later
-      };
+      // Update the existing document with payment information
+      const docRef = doc(db, REGISTRATIONS_COLLECTION, currentReservation.id);
+      await updateDoc(docRef, updateData);
       
-      await addDoc(paymentRef, paymentData);
-      
-      // 3. Update registration status
-      await updateRegistrationStatus(currentReservation.event, currentReservation.uniqueID, "paid");
-      
-      // 4. Store team details
-      const teamRef = collection(db, "teams");
-      const teamData = {
-        uniqueID: currentReservation.uniqueID,
-        teamName: teamName,
-        event: currentReservation.event,
-        eventName: currentReservation.eventName,
-        teamMembers: teamMembers,
-        leadEmail: currentReservation.email,
-        leadPhone: currentReservation.phone,
-        timestamp: serverTimestamp()
-      };
-      
-      await addDoc(teamRef, teamData);
-
       showNotification("Registration completed successfully!", "success");
       document.getElementById("payment-popup").style.display = "none";
 
@@ -434,6 +436,55 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
+  // Function to display a payment screenshot from an existing registration
+  // This can be used in an admin panel
+  function displayPaymentScreenshot(registrationData) {
+    if (registrationData && registrationData.paymentScreenshot) {
+      const imgElement = document.createElement('img');
+      imgElement.src = registrationData.paymentScreenshot;
+      imgElement.style.maxWidth = '100%';
+      return imgElement;
+    }
+    return null;
+  }
+
+  // Add a feature to preview the selected image before upload
+  document.getElementById("payment-screenshot").addEventListener("change", function(e) {
+    const file = e.target.files[0];
+    if (file) {
+      const previewContainer = document.getElementById("image-preview-container") || createPreviewContainer();
+      
+      // Clear previous preview
+      previewContainer.innerHTML = "";
+      
+      // Read and display the image
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const img = document.createElement("img");
+        img.src = event.target.result;
+        img.style.maxWidth = "100%";
+        img.style.maxHeight = "200px";
+        img.style.borderRadius = "4px";
+        previewContainer.appendChild(img);
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+  
+  // Create image preview container if it doesn't exist
+  function createPreviewContainer() {
+    const container = document.createElement("div");
+    container.id = "image-preview-container";
+    container.style.marginTop = "10px";
+    container.style.marginBottom = "10px";
+    
+    // Insert before submit button
+    const fileInputParent = document.getElementById("payment-screenshot").parentNode;
+    fileInputParent.appendChild(container);
+    
+    return container;
+  }
+
   // Show notification
   function showNotification(message, type = "info") {
     const notification = document.createElement("div");
@@ -451,14 +502,105 @@ document.addEventListener("DOMContentLoaded", function () {
     }, 3000);
   }
 
-  // Initialize form fields based on URL hash
+  // Initialize form fields based on URL hash or parameters
   function initFromUrl() {
-    if (window.location.hash === "#register" && currentReservation) {
-      document.getElementById("reserve").style.display = "none";
-      document.getElementById("register").style.display = "block";
-      setupRegistrationForm(currentReservation);
+    const urlParams = new URLSearchParams(window.location.search);
+    const uniqueID = urlParams.get('id');
+    
+    if (uniqueID) {
+      // Find the registration by uniqueID
+      findRegistrationByUniqueID(uniqueID).then(registration => {
+        if (registration) {
+          currentReservation = {
+            id: registration.id,
+            name: registration.name,
+            email: registration.email,
+            phone: registration.phone,
+            event: registration.event,
+            eventName: registration.eventName,
+            price: registration.amount,
+            uniqueID: registration.uniqueID
+          };
+          
+          if (window.location.hash === "#register") {
+            document.getElementById("reserve").style.display = "none";
+            document.getElementById("register").style.display = "block";
+            setupRegistrationForm(currentReservation);
+          } else {
+            showReservationConfirmation(currentReservation);
+          }
+        }
+      });
+    }
+  }
+
+  // Add a payment verification feature for admin panel
+  function addAdminFeatures() {
+    // Check if admin panel exists
+    const adminPanel = document.getElementById("admin-panel");
+    if (adminPanel) {
+      // Add verification buttons event listeners
+      document.querySelectorAll(".view-payment-btn").forEach(button => {
+        button.addEventListener("click", async function() {
+          const uniqueID = this.getAttribute("data-id");
+          const registration = await findRegistrationByUniqueID(uniqueID);
+          
+          if (registration && registration.paymentScreenshot) {
+            // Display the payment screenshot in a modal
+            const modal = document.createElement("div");
+            modal.className = "modal";
+            modal.style.display = "flex";
+            modal.style.position = "fixed";
+            modal.style.top = "0";
+            modal.style.left = "0";
+            modal.style.width = "100%";
+            modal.style.height = "100%";
+            modal.style.backgroundColor = "rgba(0,0,0,0.7)";
+            modal.style.justifyContent = "center";
+            modal.style.alignItems = "center";
+            modal.style.zIndex = "1000";
+            
+            const modalContent = document.createElement("div");
+            modalContent.style.backgroundColor = "#fff";
+            modalContent.style.padding = "20px";
+            modalContent.style.borderRadius = "8px";
+            modalContent.style.maxWidth = "80%";
+            modalContent.style.maxHeight = "80%";
+            modalContent.style.overflow = "auto";
+            
+            const closeBtn = document.createElement("button");
+            closeBtn.textContent = "✕";
+            closeBtn.style.float = "right";
+            closeBtn.style.border = "none";
+            closeBtn.style.background = "none";
+            closeBtn.style.fontSize = "20px";
+            closeBtn.style.cursor = "pointer";
+            closeBtn.onclick = function() {
+              document.body.removeChild(modal);
+            };
+            
+            const img = document.createElement("img");
+            img.src = registration.paymentScreenshot;
+            img.style.maxWidth = "100%";
+            img.style.display = "block";
+            img.style.marginTop = "20px";
+            
+            modalContent.appendChild(closeBtn);
+            modalContent.appendChild(document.createElement("br"));
+            modalContent.appendChild(img);
+            modal.appendChild(modalContent);
+            
+            document.body.appendChild(modal);
+          } else {
+            showNotification("No payment screenshot found for this registration", "error");
+          }
+        });
+      });
     }
   }
 
   initFromUrl();
+  
+  // Call admin features setup after page is loaded
+  setTimeout(addAdminFeatures, 1000);
 });
