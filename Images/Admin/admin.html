@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vidyut Kshetra Admin Panel</title>
+  <link rel="stylesheet" href="./admin.css">
+</head>
+<body>
+  <!-- Login Form -->
+  <div id="admin-login-form" class="login-container">
+    <div class="login-form">
+      <h2>Admin Login</h2>
+      <form>
+        <div class="form-group">
+          <label for="admin-email">Email</label>
+          <input type="email" id="admin-email" required>
+        </div>
+        <div class="form-group">
+          <label for="admin-password">Password</label>
+          <input type="password" id="admin-password" required>
+        </div>
+        <button type="submit" class="btn primary">Login</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Admin Panel (hidden by default) -->
+  <div class="admin-container" style="display: none;">
+    <header>
+      <h1>Vidyut Kshetra Admin Panel</h1>
+      <div class="user-info">
+        <span>Admin User</span>
+        <button id="logout-btn" class="btn secondary">Logout</button>
+      </div>
+    </header>
+
+    <div class="dashboard">
+      <div class="stats-container">
+        <div class="stat-card">
+          <h3>Total Registrations</h3>
+          <p id="total-registrations">0</p>
+        </div>
+        <div class="stat-card">
+          <h3>Confirmed Payments</h3>
+          <p id="confirmed-payments">0</p>
+        </div>
+        <div class="stat-card">
+          <h3>Pending Payments</h3>
+          <p id="pending-payments">0</p>
+        </div>
+        <div class="stat-card">
+          <h3>Total Revenue</h3>
+          <p id="total-revenue">₹0</p>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="filters">
+          <div class="filter-group">
+            <label for="event-filter">Event</label>
+            <select id="event-filter">
+              <option value="">All Events</option>
+              <option value="Coding">Coding and Debugging</option>
+              <option value="IT_Quiz">IT Quiz</option>
+              <option value="Bgmi">BGMI</option>
+              <option value="Free_Fire">Free Fire</option>
+              <option value="Treasure">Treasure Hunt</option>
+              <option value="Ipl">IPL Auction</option>
+              <option value="Escape">Escape Room</option>
+              <option value="Startup">Start-up Pitch</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="status-filter">Status</label>
+            <select id="status-filter">
+              <option value="">All Status</option>
+              <option value="reserved">Reserved</option>
+              <option value="pending">Payment Pending</option>
+              <option value="paid">Paid</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="search">Search</label>
+            <input type="text" id="search" placeholder="Name, Email, ID...">
+          </div>
+          <button id="apply-filters" class="btn primary">Apply Filters</button>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table id="registrations-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Event</th>
+              <th>Team</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Data will be loaded here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for viewing registration details -->
+  <div id="registration-modal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>Registration Details</h2>
+      <div id="registration-details">
+        <!-- Details will be loaded here -->
+      </div>
+      <div class="modal-actions">
+        <button id="approve-btn" class="btn success">Approve Payment</button>
+        <button id="reject-btn" class="btn danger">Reject Payment</button>
+        <button id="reminder-btn" class="btn primary">Send Reminder</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase Scripts -->
+  <script type="module" src="./admin.js"></script>
+</body>
+</html>
