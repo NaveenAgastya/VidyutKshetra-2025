@@ -199,7 +199,7 @@ function initScrollToTop() {
 
 // Countdown Timer
 function initCountdown() {
-  const eventDate = new Date("April 16, 2025 09:00:00").getTime();
+  const eventDate = new Date("April 22, 2025 09:00:00").getTime();
 
   function updateCountdown() {
     const now = new Date().getTime();
@@ -268,30 +268,65 @@ function initScheduleTabs() {
 
 // Form Handling
 function initForms() {
-  const registerForm = document.querySelector(".register-form");
-  const contactForm = document.querySelector(".contact-form");
+  const registerForm = document.getElementById("reservation-form");
+  const contactForm = document.getElementById("contact-form");
+
+  const handleFormSubmit = async (form, successMessage) => {
+    let submitBtn, originalText;
+
+    try {
+      // Get form data
+      const formData = getFormData(form);
+      console.log("Form data:", formData);
+
+      // UI feedback
+      submitBtn = form.querySelector('button[type="submit"]');
+      if (submitBtn) {
+        originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Processing...";
+      }
+
+      // Simulate async submission (replace with actual API call)
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Success
+      showFeedback(successMessage, true);
+      form.reset();
+    } catch (error) {
+      console.error("Form submission error:", error);
+      showFeedback("There was an error. Please try again.", false);
+    } finally {
+      // Reset button state
+      if (submitBtn && originalText) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
+    }
+  };
 
   if (registerForm) {
-    registerForm.addEventListener("submit", function (e) {
+    registerForm.addEventListener("submit", (e) => {
       e.preventDefault();
-      showFeedback(
-        "Thank you for registering! We will contact you soon.",
-        true
-      );
-      this.reset();
+      handleFormSubmit(registerForm, "Thank you for registering!");
     });
   }
 
   if (contactForm) {
-    contactForm.addEventListener("submit", function (e) {
+    contactForm.addEventListener("submit", (e) => {
       e.preventDefault();
-      showFeedback(
-        "Thank you for your message! We will get back to you shortly.",
-        true
+      handleFormSubmit(
+        contactForm,
+        "Thank you for your message! We will get back to you shortly."
       );
-      this.reset();
     });
   }
+}
+
+// Helper function to get form data
+function getFormData(form) {
+  const formData = new FormData(form);
+  return Object.fromEntries(formData.entries());
 }
 
 // Smooth Scroll for Anchor Links
@@ -559,14 +594,15 @@ function initEventPopups() {
       date: "April 16, 2025",
       duration: "1.5 hours (11:00AM - 12:30PM)",
       team: "2 members",
-      registrationValue: "coding",
+      registrationValue: "Coding",
+      groupLink: "https://chat.whatsapp.com/Em43SYWFqtr0CJatpRmFGi",
       description:
         "Just as ancient sages crafted powerful sutras to solve cosmic challenges, modern coders weave digital spells through algorithms and logic. In HackSutra, you will channel the wisdom of Vishwakarma, the divine architect, to build and repair digital creations.",
       rules: [
         "Coding and Debugging competition",
         "2 rounds: Knowledge & Restoration, Creation",
         "Summon your coding powers on the HackerRank battlefield",
-        "Registration fee: ₹250",
+        "Registration fee: ₹199",
       ],
       contact: ["Naveena N A: 9110677146", "Mukund Kumar G: 6362070659"],
     },
@@ -575,7 +611,8 @@ function initEventPopups() {
       date: "April 16, 2025",
       duration: "2 hours (11:00AM - 1:00PM)",
       team: "4 members",
-      registrationValue: "bgmi",
+      registrationValue: "Bgmi",
+      groupLink: "https://chat.whatsapp.com/Em43SYWFqtr0CJatpRmFGi",
       description:
         "Like the epic 18-day war between the Pandavas and Kauravas on the hallowed grounds of Kurukshetra, teams will engage in digital warfare that tests strategy, teamwork, and combat prowess.",
       rules: [
@@ -584,7 +621,7 @@ function initEventPopups() {
         "All warriors must prepare their battlegrounds in advance",
         "The use of forbidden arts will result in banishment from the tournament",
         "Warriors should come equipped with all necessary battle gear",
-        "Registration fee: ₹400",
+        "Registration fee: ₹399",
       ],
       contact: [
         "Harsha L: 9606245398",
@@ -597,7 +634,8 @@ function initEventPopups() {
       date: "April 17, 2025",
       duration: "2.5 hours (2:00PM - 4:30PM)",
       team: "2-4 members",
-      registrationValue: "treasure",
+      registrationValue: "Treasure",
+      groupLink: "https://chat.whatsapp.com/Em43SYWFqtr0CJatpRmFGi",
       description:
         "Following in the footsteps of Lord Hanuman's legendary journey to find the Sanjeevani herb to save Lakshmana, teams must embark on an epic treasure hunt requiring wit, courage, and teamwork to overcome obstacles and find the sacred prize.",
       rules: [
@@ -607,7 +645,7 @@ function initEventPopups() {
         "Time limits bind all seekers to the mortal realm",
         "The first team to retrieve the Sanjeevani shall be crowned victorious",
         "In case of a tie, the speed of previous trials shall determine the victor",
-        "Registration fee: ₹400",
+        "Registration fee: ₹399",
       ],
       contact: ["Mukund Kumar G: 6362070659"],
     },
@@ -616,7 +654,8 @@ function initEventPopups() {
       date: "April 16, 2025",
       duration: "4.5 hours (12:00PM - 4:30PM)",
       team: "4 members",
-      registrationValue: "ipl",
+      registrationValue: "Ipl",
+      groupLink: "https://chat.whatsapp.com/Em43SYWFqtr0CJatpRmFGi",
       description:
         "Just as Emperor Yudhishthira performed the RajaSuya sacrifice to establish supremacy, modern strategists must complete this ritual of team selection and resource management to build a cricket empire worthy of the gods.",
       rules: [
@@ -626,7 +665,7 @@ function initEventPopups() {
         "Each kingdom begins with 100 Crore golden coins from the royal treasury",
         "Players shall be offered to the kingdoms in divine order: Celestial Stars, Mighty Strikers, Mystical Bowlers, Divine All-Rounders, Keeper of Wickets, and Rising Talents",
         "Kingdoms must assemble their forces with wisdom and foresight",
-        "Registration fee: ₹400",
+        "Registration fee: ₹399",
       ],
       contact: ["Naveena N A: 9110677146", "Kiran R: 9880967408"],
     },
@@ -635,7 +674,8 @@ function initEventPopups() {
       date: "April 17, 2025",
       duration: "2 hours (10:00AM - 12:00 Noon)",
       team: "2 members",
-      registrationValue: "quiz",
+      registrationValue: "IT_Quiz",
+      groupLink: "https://chat.whatsapp.com/Em43SYWFqtr0CJatpRmFGi",
       description:
         "Just as the Yaksha tested Yudhishthira with profound questions before granting access to the sacred lake, participants must prove their technical knowledge through increasingly challenging riddles of IT wisdom.",
       rules: [
@@ -646,7 +686,7 @@ function initEventPopups() {
         "Unanswered questions pass like the wind to the next council",
         "Councils must race to answer the Yaksha's most challenging riddles",
         "The first to signal shall attempt an answer with no second chances",
-        "Registration fee: ₹250",
+        "Registration fee: ₹199",
       ],
       contact: ["Naveena N A: 9110677146", "Mukund Kumar G: 6362070659"],
     },
@@ -655,7 +695,8 @@ function initEventPopups() {
       date: "April 17, 2025",
       duration: "3 hours (10:00AM - 1:00PM)",
       team: "4 members",
-      registrationValue: "freefire",
+      registrationValue: "Free_Fire",
+      groupLink: "https://chat.whatsapp.com/Em43SYWFqtr0CJatpRmFGi",
       description:
         "Inspired by Agni Pariksha, the trial by fire, warriors must prove their mettle in the Free Fire arena where only the most skilled and strategic teams will emerge victorious from the flames of battle.",
       rules: [
@@ -664,7 +705,7 @@ function initEventPopups() {
         "All warriors must prepare their battlegrounds in advance",
         "The use of forbidden arts will result in banishment from the tournament",
         "Warriors should come equipped with all necessary battle gear",
-        "Registration fee: ₹300",
+        "Registration fee: ₹299",
       ],
       contact: [
         "Varun L J: 8217679129",
@@ -677,7 +718,8 @@ function initEventPopups() {
       date: "April 16, 2025",
       duration: "2 hours (11:00AM - 1:00PM)",
       team: "2 members",
-      registrationValue: "escape",
+      registrationValue: "Escape",
+      groupLink: "https://chat.whatsapp.com/Em43SYWFqtr0CJatpRmFGi",
       description:
         "Like Abhimanyu navigating the complex Chakravyuha formation in the Mahabharata, teams must solve intricate puzzles and break through layers of challenges to escape from this modern labyrinth of logical barriers.",
       rules: [
@@ -686,7 +728,7 @@ function initEventPopups() {
         "The depths of each challenge shall be revealed only at the moment of truth",
         "Only the most skilled navigators shall advance to the inner sanctum",
         "Time is both ally and enemy in this divine challenge",
-        "Registration fee: ₹200",
+        "Registration fee: ₹199",
       ],
       contact: ["Varsha: 7892293986", "Harshitha G: 6363196128"],
     },
@@ -695,7 +737,8 @@ function initEventPopups() {
       date: "April 17, 2025",
       duration: "1.5 hours (11:30AM - 1:00PM)",
       team: "2 members",
-      registrationValue: "startup",
+      registrationValue: "Startup",
+      groupLink: "https://chat.whatsapp.com/Em43SYWFqtr0CJatpRmFGi",
       description:
         "Just as the cosmos was born from creative thought, new ventures arise from innovative minds. Like deities creating new worlds, entrepreneurs must breathe life into ideas that can transform reality.",
       rules: [
@@ -704,13 +747,32 @@ function initEventPopups() {
         "Presentations must adhere to the sacred format and time constraints",
         "The judgment of the divine council is final and absolute",
         "Using another's ideas as your own will invoke the curse of disqualification",
-        "Registration fee: ₹200",
+        "Registration fee: ₹199",
       ],
       contact: [
         "Naveena N A: 9110677146",
         "Mukund Kumar G: 6362070659",
         "Harsha L: 9606245398",
       ],
+    },
+    "Veda Vision (Photography/Videography)": {
+      image: "./Images/VedaVision.jpg",
+      date: "April 17, 2025",
+      duration: "All Day Event",
+      team: "1-2 members",
+      registrationValue: "VedaVision",
+      groupLink: "https://chat.whatsapp.com/Em43SYWFqtr0CJatpRmFGi",
+      description:
+        "Capture the divine moments of VidyutKshetra through your lens. Submit either photographs (3-5 images) OR one short video (1-3 minutes) showcasing the event's essence.",
+      rules: [
+        "Photography: Submit 3-5 high-quality images",
+        "Videography: Submit one video (1-3 minutes)",
+        "All content must be original and captured during the event",
+        "Basic editing allowed but no heavy manipulation",
+        "Judging criteria: Creativity, Technical Quality, Storytelling",
+        "Registration fee: ₹100 per entry",
+      ],
+      contact: ["Gagan: 8431642756"],
     },
   };
 
@@ -873,7 +935,7 @@ function initEventPopups() {
             showSelectionNotification(eventName);
           }
 
-          const firstInput = document.querySelector("#reservation-form input");
+          const firstInput = document.querySelector("# input");
           if (firstInput) {
             firstInput.focus();
           }
