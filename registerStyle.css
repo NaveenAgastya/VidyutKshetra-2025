@@ -699,3 +699,7 @@ select option {
 .close-success-btn:hover {
   background: var(--primary);
 }
+
+#check-reservation {
+  display: block;
+}

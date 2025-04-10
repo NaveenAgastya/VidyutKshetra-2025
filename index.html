@@ -34,7 +34,7 @@
                   <li><a href="#about">About</a></li>
                   <li><a href="#events">Events</a></li>
                   <li><a href="#schedule">Schedule</a></li>
-                  <li><a href="#reserve">Register</a></li>
+                  <li><a href="#check-reservation">Register</a></li>
                   <li><a href="#contact">Contact</a></li>
                   <li><a href="./Images/Admin/admin.html">Admin Panel</a></li>
                   
@@ -73,7 +73,7 @@
             </div>
           </div>
           <div>
-            <a href="#reserve" class="btn">Register Now</a>
+            <a href="#check-reservation" class="btn">Register Now</a>
             <a href="https://drive.google.com/drive/folders/1aZPHIwfgYPd5eGuJmBeprCWEISrF57hy" class="btn">Download Broucher</a>
           </div>
         </div>
@@ -549,7 +549,20 @@
       </section>
 
       <!---------------------Reserveration form ---------------->
-
+      <section id="check-reservation" class="register">
+        <h2 class="section-title">Already Have a Reservation?</h2>
+        <div class="register-form">
+          <form id="check-reservation-form">
+            <div class="form-group">
+              <label for="existing-unique-id">Enter Your Unique ID</label>
+              <input type="text" id="existing-unique-id" name="unique-id" required>
+            </div>
+            <button type="submit" class="submit-btn">Check Reservation</button>
+          </form>
+          <p class="or-divider">- OR -</p>
+          <button id="new-reservation-btn" class="btn">Create New Reservation</button>
+        </div>
+      </section>
       <section id="reserve" class="register">
         <h2 class="section-title">Reserve Your Slot</h2>
         <div class="register-form">

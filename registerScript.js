@@ -5,17 +5,15 @@ import {
   addDoc,
   getDocs,
   query,
+  where,
+  limit,
   doc,
   updateDoc,
   serverTimestamp,
-  limit,
-  where,
 } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
 document.addEventListener("DOMContentLoaded", function () {
-  // Define currentReservation at the scope of the DOMContentLoaded event
-  let currentReservation = {};
-
+  // Configuration and Initialization
   const firebaseConfig = {
     apiKey: "AIzaSyD-M5JKGaaEKOBGx_o-BzTHvPpqAyvLyc",
     authDomain: "vidyutkshetra.firebaseapp.com",
@@ -28,14 +26,14 @@ document.addEventListener("DOMContentLoaded", function () {
   const db = getFirestore(app);
 
   // Constants
-  const MAX_FILE_SIZE_MB = 0.5;
-  const COMPRESSION_QUALITY = 0.4;
-  const MAX_IMAGE_WIDTH = 800;
+  const REGISTRATIONS_COLLECTION = "registrations";
+  const MAX_FILE_SIZE_MB = 2;
+  const MAX_IMAGE_WIDTH = 1200;
+  const COMPRESSION_QUALITY = 0.7;
+  const ALLOWED_FILE_TYPES = ["image/jpeg", "image/png", "image/webp"];
   const MAX_QUERY_LIMIT = 50;
 
-  // Single collection for all registrations
-  const REGISTRATIONS_COLLECTION = "registrations";
-
+  // Event Pricing and Codes
   const eventPrices = {
     Coding: 199,
     IT_Quiz: 199,
@@ -48,7 +46,6 @@ document.addEventListener("DOMContentLoaded", function () {
     VedaVision: 100,
   };
 
-  // Enhanced eventCodes object with group links
   const eventCodes = {
     Coding: {
       code: "VK-HS",
@@ -97,34 +94,359 @@ document.addEventListener("DOMContentLoaded", function () {
     },
   };
 
-  // Cache for storing registration counts to minimize Firestore reads
+  // State Management
+  let currentReservation = {};
   const registrationCounts = {};
 
-  function validateReservationForm(name, email, phone, interest) {
-    // Name validation
-    if (!name || name.length < 3) {
+  // DOM Initialization
+  initializeForms();
+  showCheckReservationForm();
+
+  // Core Functions
+  function initializeForms() {
+    // Check Existing Reservation Form
+    document
+      .getElementById("check-reservation-form")
+      .addEventListener("submit", handleCheckReservation);
+    document
+      .getElementById("new-reservation-btn")
+      .addEventListener("click", showReservationForm);
+
+    // New Reservation Form
+    document
+      .getElementById("reservation-form")
+      .addEventListener("submit", handleNewReservation);
+
+    // Registration Form
+    document
+      .getElementById("pay-now-btn")
+      .addEventListener("click", handlePayNow);
+    document
+      .getElementById("onspot-btn")
+      .addEventListener("click", handleOnSpotRegistration);
+
+    // Payment Form
+    document
+      .getElementById("payment-form")
+      .addEventListener("submit", handlePaymentSubmission);
+    document
+      .getElementById("payment-screenshot")
+      .addEventListener("change", handleFileUpload);
+    document
+      .querySelector(".copy-upi-btn")
+      .addEventListener("click", copyUPIId);
+  }
+
+  // Form Visibility Control
+  function showCheckReservationForm() {
+    document.getElementById("reserve").style.display = "none";
+    document.getElementById("register").style.display = "none";
+    document.getElementById("reservation-confirmation").style.display = "none";
+    document.getElementById("check-reservation").style.display = "block";
+  }
+
+  function showReservationForm() {
+    document.getElementById("check-reservation").style.display = "none";
+    document.getElementById("reserve").style.display = "block";
+  }
+
+  // Form Handlers
+  async function handleCheckReservation(e) {
+    e.preventDefault();
+    const uniqueID = document.getElementById("existing-unique-id").value.trim();
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+
+    try {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML =
+        '<i class="fas fa-spinner fa-spin"></i> Checking...';
+
+      const registration = await findRegistrationByUniqueID(uniqueID);
+
+      if (!registration) {
+        throw new Error(
+          "No reservation found with this ID. Please create a new one."
+        );
+      }
+
+      if (registration.status === "p") {
+        throw new Error("This reservation is already completed.");
+      }
+
+      currentReservation = {
+        id: registration.id,
+        name: registration.name,
+        email: registration.email,
+        phone: registration.phone,
+        event: registration.event,
+        eventName: registration.eventName,
+        price: registration.amount,
+        uniqueID: registration.uniqueID,
+        groupLink: registration.groupLink,
+        status: registration.status,
+      };
+
+      document.getElementById("check-reservation").style.display = "none";
+      setupRegistrationForm(currentReservation);
+      document.getElementById("register").style.display = "block";
+
       showNotification(
-        "Please enter a valid name (at least 3 characters)",
+        "Reservation verified! Please complete registration.",
+        "success"
+      );
+    } catch (error) {
+      showNotification(
+        error.message,
+        error.message.includes("completed") ? "info" : "error"
+      );
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalBtnText;
+    }
+  }
+
+  async function handleNewReservation(e) {
+    e.preventDefault();
+    const form = e.target;
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+
+    const name = document.getElementById("reserve-name").value.trim();
+    const email = document.getElementById("reserve-email").value.trim();
+    const phone = document.getElementById("reserve-phone").value.trim();
+    const interest = document.getElementById("reserve-interest").value.trim();
+
+    try {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML =
+        '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+      if (!validateReservationForm(name, email, phone, interest)) return;
+
+      const eventInfo = eventCodes[interest];
+      const count = await getRegistrationCount(interest);
+      const uniqueID = `${eventInfo.code}-${String(count).padStart(3, "0")}`;
+
+      const docRef = await addDoc(collection(db, REGISTRATIONS_COLLECTION), {
+        name,
+        email,
+        phone,
+        event: interest,
+        eventName: eventInfo.name,
+        uniqueID,
+        timestamp: serverTimestamp(),
+        status: "r",
+        amount: eventPrices[interest],
+        groupLink: eventInfo.groupLink,
+      });
+
+      currentReservation = {
+        id: docRef.id,
+        name,
+        email,
+        phone,
+        event: interest,
+        eventName: eventInfo.name,
+        price: eventPrices[interest],
+        uniqueID,
+        groupLink: eventInfo.groupLink,
+      };
+
+      showReservationConfirmation(currentReservation);
+      form.reset();
+    } catch (error) {
+      console.error("Registration error:", error);
+      showNotification("Registration failed. Please try again.", "error");
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalBtnText;
+    }
+  }
+
+  function handlePayNow() {
+    const teamName = document.getElementById("team-name").value.trim();
+    const eventType = currentReservation.event;
+    const members = getTeamMembers();
+
+    if (!validateRegistrationForm(teamName, members, eventType)) return;
+
+    document.getElementById("payment-event").textContent =
+      currentReservation.eventName;
+    document.getElementById("payment-team").textContent = teamName;
+    document.getElementById(
+      "payment-amount"
+    ).textContent = `₹${currentReservation.price}`;
+    document.getElementById("payment-popup").style.display = "flex";
+  }
+
+  async function handleOnSpotRegistration() {
+    const btn = this;
+    const originalText = btn.innerHTML;
+
+    try {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+      await updateRegistrationStatus(currentReservation.id, "o", {
+        onSpotRegistered: true,
+        onSpotTimestamp: serverTimestamp(),
+      });
+
+      document.getElementById("reservation-confirmation").style.display =
+        "none";
+      showNotification(
+        `On-spot registration confirmed! Your ID: ${currentReservation.uniqueID}`,
+        "success"
+      );
+
+      if (currentReservation.groupLink) {
+        showGroupLink(currentReservation.groupLink);
+      }
+    } catch (error) {
+      console.error("On-spot registration error:", error);
+      showNotification(
+        "Failed to confirm on-spot registration. Please try again.",
         "error"
       );
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+    }
+  }
+
+  async function handlePaymentSubmission(e) {
+    e.preventDefault();
+    const form = e.target;
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+
+    const teamName = document.getElementById("team-name").value.trim();
+    const transactionId = document
+      .getElementById("transaction-id")
+      .value.trim();
+    const paymentScreenshotFile =
+      document.getElementById("payment-screenshot").files[0];
+    const members = getTeamMembers();
+
+    try {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML =
+        '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+      if (
+        !validatePaymentForm(
+          teamName,
+          transactionId,
+          paymentScreenshotFile,
+          members
+        )
+      )
+        return;
+
+      const updateData = {
+        team: teamName,
+        members: members,
+        txnId: transactionId,
+        paymentTimestamp: serverTimestamp(),
+        status: "p",
+      };
+
+      if (paymentScreenshotFile) {
+        showNotification("Processing payment screenshot...", "info");
+        updateData.paymentScreenshot = await compressImage(
+          paymentScreenshotFile
+        );
+      }
+
+      await updateRegistrationStatus(currentReservation.id, "p", updateData);
+      showPaymentSuccess(currentReservation.event);
+
+      // Reset all forms
+      document.getElementById("reservation-form").reset();
+      document.getElementById("registration-form").reset();
+      form.reset();
+      document.getElementById("file-name").textContent = "No file chosen";
+      document.getElementById("image-preview-container").innerHTML = "";
+      document.getElementById("payment-popup").style.display = "none";
+    } catch (error) {
+      console.error("Payment error:", error);
+      showNotification(
+        error.message || "Payment processing failed. Please try again.",
+        "error"
+      );
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = originalBtnText;
+    }
+  }
+
+  // Helper Functions
+  function getTeamMembers() {
+    const members = [document.getElementById("member1").value.trim()];
+    for (let i = 2; i <= 4; i++) {
+      const member = document.getElementById(`member${i}`);
+      if (member) members.push(member.value.trim());
+    }
+    return members;
+  }
+
+  async function getRegistrationCount(eventType) {
+    if (!registrationCounts[eventType]) {
+      const q = query(
+        collection(db, REGISTRATIONS_COLLECTION),
+        where("event", "==", eventType),
+        limit(MAX_QUERY_LIMIT)
+      );
+      const querySnapshot = await getDocs(q);
+      registrationCounts[eventType] = querySnapshot.size;
+    }
+    return ++registrationCounts[eventType];
+  }
+
+  async function findRegistrationByUniqueID(uniqueID) {
+    const q = query(
+      collection(db, REGISTRATIONS_COLLECTION),
+      where("uniqueID", "==", uniqueID),
+      limit(1)
+    );
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.empty
+      ? null
+      : { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() };
+  }
+
+  async function updateRegistrationStatus(docId, status, additionalData = {}) {
+    const docRef = doc(db, REGISTRATIONS_COLLECTION, docId);
+    await updateDoc(docRef, {
+      status,
+      updated: serverTimestamp(),
+      ...additionalData,
+    });
+  }
+
+  // Validation Functions
+  function validateReservationForm(name, email, phone, interest) {
+    if (!name || name.length < 3) {
+      showNotification("Please enter a valid name (min 3 characters)", "error");
       return false;
     }
 
-    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email || !emailRegex.test(email)) {
       showNotification("Please enter a valid email address", "error");
       return false;
     }
 
-    // Phone validation
     const phoneRegex = /^[6-9]\d{9}$/;
     if (!phone || !phoneRegex.test(phone)) {
-      showNotification("Please enter a valid 10-digit phone number", "error");
+      showNotification(
+        "Please enter a valid 10-digit Indian phone number",
+        "error"
+      );
       return false;
     }
 
-    // Event selection validation
     if (!interest || !eventCodes[interest]) {
       showNotification("Please select an event to participate in", "error");
       return false;
@@ -133,84 +455,200 @@ document.addEventListener("DOMContentLoaded", function () {
     return true;
   }
 
-  document
-    .getElementById("reservation-form")
-    .addEventListener("submit", async function (e) {
-      e.preventDefault();
+  function validateRegistrationForm(teamName, members, eventType) {
+    if (!teamName || teamName.length < 3) {
+      showNotification(
+        "Please enter a valid team name (min 3 characters)",
+        "error"
+      );
+      return false;
+    }
 
-      const name = document.getElementById("reserve-name").value.trim();
-      const email = document.getElementById("reserve-email").value.trim();
-      const phone = document.getElementById("reserve-phone").value.trim();
-      const interest = document.getElementById("reserve-interest").value.trim();
+    const duoEvents = ["Coding", "IT_Quiz", "Escape", "Startup", "VedaVision"];
+    const squadEvents = ["Bgmi", "Free_Fire", "Treasure", "Ipl"];
 
-      if (!validateReservationForm(name, email, phone, interest)) {
-        return;
+    if (duoEvents.includes(eventType)) {
+      if (members.length < 2 || members.some((m) => !m || m.length < 3)) {
+        showNotification(
+          "Please enter valid details for all team members",
+          "error"
+        );
+        return false;
       }
+    } else if (squadEvents.includes(eventType)) {
+      if (members.length < 4 || members.some((m) => !m || m.length < 3)) {
+        showNotification(
+          "Please enter valid details for all 4 team members",
+          "error"
+        );
+        return false;
+      }
+    }
 
-      const eventInfo = eventCodes[interest];
-      const registrationsRef = collection(db, REGISTRATIONS_COLLECTION);
+    return true;
+  }
 
-      try {
-        // Check if we have a cached count
-        if (!registrationCounts[interest]) {
-          // Query with limit to avoid excessive reads
-          const q = query(
-            registrationsRef,
-            where("event", "==", interest),
-            limit(MAX_QUERY_LIMIT)
-          );
-          const querySnapshot = await getDocs(q);
-          registrationCounts[interest] = querySnapshot.size;
-        }
+  function validatePaymentForm(
+    teamName,
+    transactionId,
+    paymentScreenshotFile,
+    members
+  ) {
+    if (
+      !validateRegistrationForm(teamName, members, currentReservation.event)
+    ) {
+      return false;
+    }
 
-        // Increment the count
-        registrationCounts[interest]++;
-        const count = registrationCounts[interest];
-        const uniqueID = `${eventInfo.code}-${String(count).padStart(3, "0")}`;
+    if (!transactionId || transactionId.length < 6) {
+      showNotification(
+        "Please enter a valid transaction ID (min 6 characters)",
+        "error"
+      );
+      return false;
+    }
 
-        // Store in Firestore - single document with minimal fields
-        const docRef = await addDoc(registrationsRef, {
-          name,
-          email,
-          phone,
-          event: interest,
-          eventName: eventInfo.name,
-          uniqueID,
-          timestamp: serverTimestamp(),
-          status: "r", // r = reserved, p = paid, o = on-spot
-          // Initialize fields to be populated later
-          team: null,
-          members: [name], // Add lead member by default
-          amount: eventPrices[interest],
-          txnId: null,
-          paymentScreenshot: null, // Will store base64 image directly
-          paymentTimestamp: null,
-          groupLink: eventInfo.groupLink, // Store group link with registration
-        });
+    if (!paymentScreenshotFile) {
+      showNotification("Please upload a payment screenshot", "error");
+      return false;
+    }
 
-        // Set current reservation
-        currentReservation = {
-          id: docRef.id, // Store the Firestore document ID for easier updates
-          name,
-          email,
-          phone,
-          event: interest,
-          eventName: eventInfo.name,
-          price: eventPrices[interest],
-          uniqueID: uniqueID,
-          groupLink: eventInfo.groupLink,
+    return true;
+  }
+
+  // File Handling
+  async function handleFileUpload(e) {
+    const file = e.target.files[0];
+    const fileNameElement = document.getElementById("file-name");
+    const previewContainer =
+      document.getElementById("image-preview-container") ||
+      createPreviewContainer();
+
+    previewContainer.innerHTML = "";
+    fileNameElement.textContent = "No file chosen";
+
+    if (!file) return;
+
+    if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+      showNotification("Please upload a JPEG, PNG, or WebP image", "error");
+      e.target.value = "";
+      return;
+    }
+
+    const fileSizeMB = file.size / (1024 * 1024);
+    if (fileSizeMB > MAX_FILE_SIZE_MB) {
+      showNotification(`File exceeds ${MAX_FILE_SIZE_MB}MB limit`, "error");
+      e.target.value = "";
+      return;
+    }
+
+    fileNameElement.textContent = "Processing image...";
+    previewContainer.innerHTML = '<div class="loading-spinner"></div>';
+
+    try {
+      const preview = await createImagePreview(file, previewContainer);
+      fileNameElement.textContent = `${file.name} (${
+        Math.round(fileSizeMB * 100) / 100
+      }MB)`;
+
+      const dimensionsInfo = document.createElement("div");
+      dimensionsInfo.className = "image-dimensions";
+      dimensionsInfo.textContent = `Dimensions: ${preview.naturalWidth}×${preview.naturalHeight}px`;
+      previewContainer.appendChild(dimensionsInfo);
+    } catch (error) {
+      console.error("Image processing error:", error);
+      showNotification(
+        "Failed to process image. Please try another file.",
+        "error"
+      );
+      e.target.value = "";
+      previewContainer.innerHTML = "";
+    }
+  }
+
+  function createImagePreview(file, container) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+
+      reader.onload = function (event) {
+        const img = new Image();
+        img.src = event.target.result;
+
+        img.onload = function () {
+          container.innerHTML = "";
+
+          const previewImg = document.createElement("img");
+          previewImg.src = event.target.result;
+          previewImg.style.maxWidth = "100%";
+          previewImg.style.maxHeight = "300px";
+          previewImg.style.borderRadius = "4px";
+          previewImg.alt = "Payment screenshot preview";
+
+          container.appendChild(previewImg);
+          resolve(img);
         };
 
-        // Show confirmation
-        showReservationConfirmation(currentReservation);
-        document.getElementById("reservation-form").reset();
-      } catch (error) {
-        console.error("Error registering:", error);
-        alert("⚠️ Registration failed. Try again!");
-      }
-    });
+        img.onerror = function () {
+          reject(new Error("Failed to load image"));
+        };
+      };
 
-  // Show reservation confirmation
+      reader.onerror = function () {
+        reject(new Error("Failed to read file"));
+      };
+    });
+  }
+
+  async function compressImage(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+
+      reader.onload = function (event) {
+        const img = new Image();
+        img.src = event.target.result;
+
+        img.onload = function () {
+          let width = img.width;
+          let height = img.height;
+          let quality = COMPRESSION_QUALITY;
+
+          // Adjust quality based on original size
+          const originalSizeMB = file.size / (1024 * 1024);
+          if (originalSizeMB < 1) quality = 0.8;
+          else if (originalSizeMB > 3) quality = 0.5;
+
+          if (width > MAX_IMAGE_WIDTH) {
+            const ratio = MAX_IMAGE_WIDTH / width;
+            width = MAX_IMAGE_WIDTH;
+            height = height * ratio;
+          }
+
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext("2d", { willReadFrequently: true });
+          ctx.imageSmoothingQuality = "high";
+          ctx.drawImage(img, 0, 0, width, height);
+
+          const base64Image = canvas.toDataURL(file.type, quality);
+          resolve(base64Image);
+        };
+
+        img.onerror = function () {
+          reject(new Error("Failed to load image"));
+        };
+      };
+
+      reader.onerror = function () {
+        reject(new Error("Failed to read file"));
+      };
+    });
+  }
+
+  // UI Functions
   function showReservationConfirmation(reservation) {
     document.getElementById("unique-key-value").textContent =
       reservation.uniqueID;
@@ -225,80 +663,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("reservation-confirmation").style.display = "block";
   }
 
-  // Copy key to clipboard
-  document
-    .getElementById("copy-key-btn")
-    .addEventListener("click", function () {
-      const key = document.getElementById("unique-key-value").textContent;
-      navigator.clipboard.writeText(key).then(() => {
-        showNotification("Unique key copied to clipboard!", "success");
-      });
-    });
-
-  // Register Now button
-  document
-    .getElementById("register-now-btn")
-    .addEventListener("click", function () {
-      document.getElementById("reservation-confirmation").style.display =
-        "none";
-      document.getElementById("register").style.display = "block";
-
-      // Set up registration form with reservation data
-      setupRegistrationForm(currentReservation);
-    });
-
-  // Register On-Spot button
-  document.getElementById("onspot-btn").addEventListener("click", function () {
-    const key = document.getElementById("unique-key-value").textContent;
-    showNotification(
-      `You've chosen on-spot registration. Please note your key: ${key}`,
-      "info"
-    );
-    updateRegistrationStatus(currentReservation.id, "o");
-  });
-
-  // Update registration status in Firestore - simplified with direct document update
-  async function updateRegistrationStatus(docId, status) {
-    try {
-      const docRef = doc(db, REGISTRATIONS_COLLECTION, docId);
-      await updateDoc(docRef, {
-        status: status,
-        updated: serverTimestamp(),
-      });
-    } catch (error) {
-      console.error("Error updating status:", error);
-    }
-  }
-
-  // Find registration by unique ID
-  async function findRegistrationByUniqueID(uniqueID) {
-    try {
-      const registrationsRef = collection(db, REGISTRATIONS_COLLECTION);
-      const q = query(
-        registrationsRef,
-        where("uniqueID", "==", uniqueID),
-        limit(1)
-      );
-
-      const querySnapshot = await getDocs(q);
-      if (querySnapshot.empty) {
-        return null;
-      }
-
-      const doc = querySnapshot.docs[0];
-      return {
-        id: doc.id,
-        ...doc.data(),
-      };
-    } catch (error) {
-      console.error("Error finding registration:", error);
-      return null;
-    }
-  }
-
-  // Setup registration form with reservation data
   function setupRegistrationForm(reservation) {
-    // Auto-fill fields
     document.getElementById("unique-id").value = reservation.uniqueID;
     document.getElementById("reg-name").value = reservation.name;
     document.getElementById("reg-email").value = reservation.email;
@@ -306,30 +671,21 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("reg-event").value = reservation.eventName;
     document.getElementById("member1").value = reservation.name;
 
-    // Set up dynamic team fields and pricing
     setupTeamFields(reservation.event);
   }
 
-  // Set up team fields based on event type
   function setupTeamFields(eventType) {
     const container = document.getElementById("additional-members-container");
     container.innerHTML = "";
 
-    // Set the price based on event type
-    const price = eventPrices[eventType] || 0;
-    document.getElementById("payment-amount").textContent = `₹${price}`;
-
-    const duoEvents = ["Coding", "IT_Quiz", "Escape", "Startup", "VedaVision"];
-    const squadEvents = ["Bgmi", "Free_Fire", "Treasure", "Ipl"];
-
-    if (duoEvents.includes(eventType)) {
+    if (["Coding", "IT_Quiz", "Escape", "Startup"].includes(eventType)) {
       container.innerHTML = `
         <div class="form-group">
           <label for="member2">Team Member 2</label>
           <input type="text" id="member2" name="member2" required>
         </div>
       `;
-    } else if (squadEvents.includes(eventType)) {
+    } else if (["Bgmi", "Free_Fire", "Treasure", "Ipl"].includes(eventType)) {
       container.innerHTML = `
         <div class="form-group">
           <label for="member2">Team Member 2</label>
@@ -346,435 +702,9 @@ document.addEventListener("DOMContentLoaded", function () {
       `;
     }
   }
-  function validateRegistrationForm(teamName, members, eventType) {
-    // Team name validation
-    if (!teamName || teamName.length < 3) {
-      showNotification(
-        "Please enter a valid team name (at least 3 characters)",
-        "error"
-      );
-      return false;
-    }
 
-    // Member validation based on event type
-    const duoEvents = ["Coding", "IT_Quiz", "Escape", "Startup"];
-    const squadEvents = ["Bgmi", "Free_Fire", "Treasure", "Ipl"];
-
-    if (duoEvents.includes(eventType)) {
-      const member2 = document.getElementById("member2").value.trim();
-      if (!member2 || member2.length < 3) {
-        showNotification(
-          "Please enter valid details for Team Member 2",
-          "error"
-        );
-        return false;
-      }
-    } else if (squadEvents.includes(eventType)) {
-      const member2 = document.getElementById("member2").value.trim();
-      const member3 = document.getElementById("member3").value.trim();
-      const member4 = document.getElementById("member4").value.trim();
-
-      if (
-        !member2 ||
-        member2.length < 3 ||
-        !member3 ||
-        member3.length < 3 ||
-        !member4 ||
-        member4.length < 3
-      ) {
-        showNotification(
-          "Please enter valid details for all team members",
-          "error"
-        );
-        return false;
-      }
-    }
-
-    return true;
-  }
-  // Pay Now button
-  document.getElementById("pay-now-btn").addEventListener("click", function () {
-    const teamName = document.getElementById("team-name").value.trim();
-    const eventType = currentReservation.event;
-    const members = [document.getElementById("member1").value.trim()];
-
-    if (document.getElementById("member2")) {
-      members.push(document.getElementById("member2").value.trim());
-    }
-    if (document.getElementById("member3")) {
-      members.push(document.getElementById("member3").value.trim());
-    }
-    if (document.getElementById("member4")) {
-      members.push(document.getElementById("member4").value.trim());
-    }
-
-    // Validate form
-    if (!validateRegistrationForm(teamName, members, eventType)) {
-      return;
-    }
-
-    // Set payment details
-    document.getElementById("payment-event").textContent =
-      document.getElementById("reg-event").value;
-    document.getElementById("payment-team").textContent = teamName;
-
-    // Show payment popup
-    document.getElementById("payment-popup").style.display = "flex";
-  });
-
-  // Close payment popup
-  document.querySelector(".close-btn").addEventListener("click", function () {
-    document.getElementById("payment-popup").style.display = "none";
-  });
-
-  // Constants for file validation
-  const ALLOWED_FILE_TYPES = ["image/jpeg", "image/png", "image/webp"];
-
-  // Enhanced file upload display and validation
-  document
-    .getElementById("payment-screenshot")
-    .addEventListener("change", async function (e) {
-      const file = e.target.files[0];
-      const fileNameElement = document.getElementById("file-name");
-      const previewContainer =
-        document.getElementById("image-preview-container") ||
-        createPreviewContainer();
-
-      // Clear previous preview and messages
-      previewContainer.innerHTML = "";
-      fileNameElement.textContent = "No file chosen";
-
-      if (!file) {
-        return;
-      }
-
-      // Validate file type
-      if (!ALLOWED_FILE_TYPES.includes(file.type)) {
-        showNotification(
-          "Please upload a valid image (JPEG, PNG, or WebP)",
-          "error"
-        );
-        this.value = "";
-        return;
-      }
-
-      // Check file size
-      const fileSizeMB = file.size / (1024 * 1024);
-      if (fileSizeMB > MAX_FILE_SIZE_MB) {
-        showNotification(
-          `File size exceeds ${MAX_FILE_SIZE_MB}MB limit. Please choose a smaller file.`,
-          "error"
-        );
-        this.value = "";
-        return;
-      }
-
-      // Show loading state
-      fileNameElement.textContent = "Processing image...";
-      previewContainer.innerHTML = '<div class="loading-spinner"></div>';
-
-      try {
-        // Create preview and get dimensions
-        const preview = await createImagePreview(file, previewContainer);
-        fileNameElement.textContent = `${file.name} (${
-          Math.round(fileSizeMB * 100) / 100
-        }MB)`;
-
-        // Show dimensions info
-        const dimensionsInfo = document.createElement("div");
-        dimensionsInfo.className = "image-dimensions";
-        dimensionsInfo.textContent = `Dimensions: ${preview.naturalWidth}×${preview.naturalHeight}px`;
-        previewContainer.appendChild(dimensionsInfo);
-      } catch (error) {
-        console.error("Error processing image:", error);
-        showNotification(
-          "Failed to process image. Please try another file.",
-          "error"
-        );
-        this.value = "";
-        previewContainer.innerHTML = "";
-      }
-    });
-
-  // Improved image preview creation
-  function createImagePreview(file, container) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-
-      reader.onload = function (event) {
-        const img = new Image();
-        img.src = event.target.result;
-
-        img.onload = function () {
-          container.innerHTML = "";
-
-          // Create preview image
-          const previewImg = document.createElement("img");
-          previewImg.src = event.target.result;
-          previewImg.style.maxWidth = "100%";
-          previewImg.style.maxHeight = "300px";
-          previewImg.style.borderRadius = "4px";
-          previewImg.alt = "Payment screenshot preview";
-
-          container.appendChild(previewImg);
-          resolve(img); // Resolve with the full image for dimensions
-        };
-
-        img.onerror = function () {
-          reject(new Error("Failed to load image"));
-        };
-      };
-
-      reader.onerror = function () {
-        reject(new Error("Failed to read file"));
-      };
-    });
-  }
-
-  // Enhanced image compression with better quality handling
-  function compressImage(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-
-      reader.onload = function (event) {
-        const img = new Image();
-        img.src = event.target.result;
-
-        img.onload = function () {
-          // Calculate new dimensions while maintaining aspect ratio
-          let width = img.width;
-          let height = img.height;
-          let quality = COMPRESSION_QUALITY;
-
-          // Adjust quality based on original file size
-          const originalSizeMB = file.size / (1024 * 1024);
-          if (originalSizeMB < 1) {
-            quality = 0.8; // Higher quality for already small files
-          } else if (originalSizeMB > 3) {
-            quality = 0.5; // More compression for very large files
-          }
-
-          if (width > MAX_IMAGE_WIDTH) {
-            const ratio = MAX_IMAGE_WIDTH / width;
-            width = MAX_IMAGE_WIDTH;
-            height = height * ratio;
-          }
-
-          const canvas = document.createElement("canvas");
-          canvas.width = width;
-          canvas.height = height;
-
-          // Higher quality canvas settings
-          const ctx = canvas.getContext("2d", { willReadFrequently: true });
-          ctx.imageSmoothingQuality = "high";
-          ctx.drawImage(img, 0, 0, width, height);
-
-          // Get compressed image as base64 string
-          const base64Image = canvas.toDataURL(file.type, quality);
-
-          // Verify compressed size
-          const compressedSizeMB = (base64Image.length * 3) / 4 / (1024 * 1024);
-          if (compressedSizeMB > MAX_FILE_SIZE_MB) {
-            // If still too large, try again with lower quality
-            return resolve(compressImageWithQuality(file, quality * 0.7));
-          }
-
-          resolve(base64Image);
-        };
-
-        img.onerror = function () {
-          reject(new Error("Failed to load image"));
-        };
-      };
-
-      reader.onerror = function () {
-        reject(new Error("Failed to read file"));
-      };
-    });
-  }
-
-  // Helper function for recursive compression with lower quality
-  function compressImageWithQuality(file, quality) {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.src = URL.createObjectURL(file);
-
-      img.onload = function () {
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-
-        // Reduce dimensions further if needed
-        let width = img.width;
-        let height = img.height;
-        if (width > MAX_IMAGE_WIDTH * 0.8) {
-          width = MAX_IMAGE_WIDTH * 0.8;
-          height = (img.height / img.width) * width;
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-        ctx.drawImage(img, 0, 0, width, height);
-
-        const base64Image = canvas.toDataURL(file.type, quality);
-        resolve(base64Image);
-      };
-    });
-  }
-
-  // Enhanced payment form submission with better validation
-  document
-    .getElementById("payment-form")
-    .addEventListener("submit", async function (e) {
-      e.preventDefault();
-
-      // Validate form first
-      const teamName = document.getElementById("team-name").value.trim();
-      const transactionId = document
-        .getElementById("transaction-id")
-        .value.trim();
-      const paymentScreenshotFile =
-        document.getElementById("payment-screenshot").files[0];
-
-      if (!teamName || teamName.length < 3) {
-        showNotification(
-          "Please enter a valid team name (min 3 characters)",
-          "error"
-        );
-        document.getElementById("team-name").focus();
-        return;
-      }
-
-      if (!transactionId || transactionId.length < 6) {
-        showNotification(
-          "Please enter a valid transaction ID (min 6 characters)",
-          "error"
-        );
-        document.getElementById("transaction-id").focus();
-        return;
-      }
-
-      if (!paymentScreenshotFile) {
-        showNotification("Please upload a payment screenshot", "error");
-        return;
-      }
-
-      // Show loading state
-      const submitBtn = this.querySelector('button[type="submit"]');
-      const originalBtnText = submitBtn.innerHTML;
-      submitBtn.disabled = true;
-      submitBtn.innerHTML =
-        '<i class="fas fa-spinner fa-spin"></i> Processing...';
-
-      try {
-        // Get all team members with validation
-        const teamMembers = [document.getElementById("member1").value.trim()];
-        const memberFields = ["member2", "member3", "member4"];
-
-        for (const field of memberFields) {
-          const element = document.getElementById(field);
-          if (element) {
-            const value = element.value.trim();
-            if (!value || value.length < 3) {
-              throw new Error(
-                `Please enter valid details for all team members (min 3 characters each)`
-              );
-            }
-            teamMembers.push(value);
-          }
-        }
-
-        // Prepare update data
-        const updateData = {
-          team: teamName,
-          members: teamMembers,
-          txnId: transactionId,
-          paymentTimestamp: serverTimestamp(),
-          status: "p", // p = paid/pending confirmation
-        };
-
-        // Process and store screenshot
-        showNotification("Compressing and uploading image...", "info");
-        const base64Image = await compressImage(paymentScreenshotFile);
-        updateData.paymentScreenshot = base64Image;
-
-        // Update Firestore document
-        const docRef = doc(db, REGISTRATIONS_COLLECTION, currentReservation.id);
-        await updateDoc(docRef, updateData);
-
-        // Show success
-        showPaymentSuccess(currentReservation.event);
-
-        // Reset forms
-        document.getElementById("reservation-form").reset();
-        document.getElementById("registration-form").reset();
-        this.reset();
-        document.getElementById("file-name").textContent = "No file chosen";
-        document.getElementById("image-preview-container").innerHTML = "";
-
-        // Hide payment popup
-        document.getElementById("payment-popup").style.display = "none";
-      } catch (error) {
-        console.error("Payment processing error:", error);
-        showNotification(
-          error.message || "Payment processing failed. Please try again.",
-          "error"
-        );
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = originalBtnText;
-      }
-    });
-
-  // Helper function to create preview container
-  function createPreviewContainer() {
-    const container = document.createElement("div");
-    container.id = "image-preview-container";
-    container.style.margin = "10px 0";
-    container.style.textAlign = "center";
-
-    const fileInput = document.getElementById("payment-screenshot");
-    fileInput.parentNode.insertBefore(container, fileInput.nextSibling);
-
-    return container;
-  }
-
-  // Enhanced UPI ID copy functionality
-  document
-    .querySelector(".copy-upi-btn")
-    .addEventListener("click", function () {
-      const upiId = "vidyutkshetra@upi";
-
-      navigator.clipboard
-        .writeText(upiId)
-        .then(() => {
-          // Visual feedback
-          const btn = this;
-          btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
-          btn.style.backgroundColor = "#4CAF50";
-
-          setTimeout(() => {
-            btn.innerHTML = '<i class="far fa-copy"></i>';
-            btn.style.backgroundColor = "";
-          }, 2000);
-
-          showNotification("UPI ID copied to clipboard!", "success");
-        })
-        .catch((err) => {
-          console.error("Failed to copy UPI ID:", err);
-          showNotification(
-            "Failed to copy UPI ID. Please copy manually.",
-            "error"
-          );
-        });
-    });
-
-  // Show payment success with group link
   function showPaymentSuccess(eventType) {
     const eventInfo = eventCodes[eventType];
-
-    // Create success popup
     const successPopup = document.createElement("div");
     successPopup.className = "payment-success-popup";
     successPopup.innerHTML = `
@@ -797,86 +727,76 @@ document.addEventListener("DOMContentLoaded", function () {
     `;
 
     document.body.appendChild(successPopup);
-
-    // Close button handler
     successPopup
       .querySelector(".close-success-btn")
       .addEventListener("click", () => {
         successPopup.remove();
-        // Show reservation form again
-        document.getElementById("register").style.display = "none";
-        document.getElementById("reservation-confirmation").style.display =
-          "none";
-        document.getElementById("reserve").style.display = "block";
+        showCheckReservationForm();
       });
 
-    // Also close when clicking outside
     successPopup.addEventListener("click", (e) => {
       if (e.target === successPopup) {
         successPopup.remove();
-        // Show reservation form again
-        document.getElementById("register").style.display = "none";
-        document.getElementById("reservation-confirmation").style.display =
-          "none";
-        document.getElementById("reserve").style.display = "block";
+        showCheckReservationForm();
       }
     });
   }
 
-  // Function to display a payment screenshot from an existing registration
-  function displayPaymentScreenshot(registrationData) {
-    if (registrationData && registrationData.paymentScreenshot) {
-      const imgElement = document.createElement("img");
-      imgElement.src = registrationData.paymentScreenshot;
-      imgElement.style.maxWidth = "100%";
-      return imgElement;
-    }
-    return null;
+  function showGroupLink(link) {
+    const groupLinkDiv = document.createElement("div");
+    groupLinkDiv.className = "group-link-notification";
+    groupLinkDiv.innerHTML = `
+      <p>Join the event WhatsApp group for updates:</p>
+      <a href="${link}" target="_blank" class="whatsapp-link">
+        <i class="fab fa-whatsapp"></i> Join Group
+      </a>
+    `;
+
+    document.body.appendChild(groupLinkDiv);
+    setTimeout(() => groupLinkDiv.classList.add("show"), 100);
+    setTimeout(() => {
+      groupLinkDiv.classList.remove("show");
+      setTimeout(() => groupLinkDiv.remove(), 300);
+    }, 10000);
   }
 
-  // Add a feature to preview the selected image before upload
-  document
-    .getElementById("payment-screenshot")
-    .addEventListener("change", function (e) {
-      const file = e.target.files[0];
-      if (file) {
-        const previewContainer =
-          document.getElementById("image-preview-container") ||
-          createPreviewContainer();
+  function copyUPIId() {
+    const upiId = "vidyutkshetra@upi";
+    navigator.clipboard
+      .writeText(upiId)
+      .then(() => {
+        const btn = this;
+        btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        btn.style.backgroundColor = "#4CAF50";
 
-        // Clear previous preview
-        previewContainer.innerHTML = "";
+        setTimeout(() => {
+          btn.innerHTML = '<i class="far fa-copy"></i>';
+          btn.style.backgroundColor = "";
+        }, 2000);
 
-        // Read and display the image
-        const reader = new FileReader();
-        reader.onload = function (event) {
-          const img = document.createElement("img");
-          img.src = event.target.result;
-          img.style.maxWidth = "100%";
-          img.style.maxHeight = "200px";
-          img.style.borderRadius = "4px";
-          previewContainer.appendChild(img);
-        };
-        reader.readAsDataURL(file);
-      }
-    });
+        showNotification("UPI ID copied to clipboard!", "success");
+      })
+      .catch((err) => {
+        console.error("Failed to copy UPI ID:", err);
+        showNotification(
+          "Failed to copy UPI ID. Please copy manually.",
+          "error"
+        );
+      });
+  }
 
-  // Create image preview container if it doesn't exist
   function createPreviewContainer() {
     const container = document.createElement("div");
     container.id = "image-preview-container";
-    container.style.marginTop = "10px";
-    container.style.marginBottom = "10px";
+    container.style.margin = "10px 0";
+    container.style.textAlign = "center";
 
-    // Insert before submit button
-    const fileInputParent =
-      document.getElementById("payment-screenshot").parentNode;
-    fileInputParent.appendChild(container);
+    const fileInput = document.getElementById("payment-screenshot");
+    fileInput.parentNode.insertBefore(container, fileInput.nextSibling);
 
     return container;
   }
 
-  // Show notification
   function showNotification(message, type = "info") {
     const notification = document.createElement("div");
     notification.className = `notification ${type}`;
@@ -890,112 +810,6 @@ document.addEventListener("DOMContentLoaded", function () {
     setTimeout(() => {
       notification.classList.remove("show");
       setTimeout(() => notification.remove(), 300);
-    }, 3000);
+    }, 5000);
   }
-
-  // Initialize form fields based on URL hash or parameters
-  function initFromUrl() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const uniqueID = urlParams.get("id");
-
-    if (uniqueID) {
-      // Find the registration by uniqueID
-      findRegistrationByUniqueID(uniqueID).then((registration) => {
-        if (registration) {
-          currentReservation = {
-            id: registration.id,
-            name: registration.name,
-            email: registration.email,
-            phone: registration.phone,
-            event: registration.event,
-            eventName: registration.eventName,
-            price: registration.amount,
-            uniqueID: registration.uniqueID,
-            groupLink: registration.groupLink,
-          };
-
-          if (window.location.hash === "#register") {
-            document.getElementById("reserve").style.display = "none";
-            document.getElementById("register").style.display = "block";
-            setupRegistrationForm(currentReservation);
-          } else {
-            showReservationConfirmation(currentReservation);
-          }
-        }
-      });
-    }
-  }
-
-  // Add a payment verification feature for admin panel
-  function addAdminFeatures() {
-    // Check if admin panel exists
-    const adminPanel = document.getElementById("admin-panel");
-    if (adminPanel) {
-      // Add verification buttons event listeners
-      document.querySelectorAll(".view-payment-btn").forEach((button) => {
-        button.addEventListener("click", async function () {
-          const uniqueID = this.getAttribute("data-id");
-          const registration = await findRegistrationByUniqueID(uniqueID);
-
-          if (registration && registration.paymentScreenshot) {
-            // Display the payment screenshot in a modal
-            const modal = document.createElement("div");
-            modal.className = "modal";
-            modal.style.display = "flex";
-            modal.style.position = "fixed";
-            modal.style.top = "0";
-            modal.style.left = "0";
-            modal.style.width = "100%";
-            modal.style.height = "100%";
-            modal.style.backgroundColor = "rgba(0,0,0,0.7)";
-            modal.style.justifyContent = "center";
-            modal.style.alignItems = "center";
-            modal.style.zIndex = "1000";
-
-            const modalContent = document.createElement("div");
-            modalContent.style.backgroundColor = "#fff";
-            modalContent.style.padding = "20px";
-            modalContent.style.borderRadius = "8px";
-            modalContent.style.maxWidth = "80%";
-            modalContent.style.maxHeight = "80%";
-            modalContent.style.overflow = "auto";
-
-            const closeBtn = document.createElement("button");
-            closeBtn.textContent = "✕";
-            closeBtn.style.float = "right";
-            closeBtn.style.border = "none";
-            closeBtn.style.background = "none";
-            closeBtn.style.fontSize = "20px";
-            closeBtn.style.cursor = "pointer";
-            closeBtn.onclick = function () {
-              document.body.removeChild(modal);
-            };
-
-            const img = document.createElement("img");
-            img.src = registration.paymentScreenshot;
-            img.style.maxWidth = "100%";
-            img.style.display = "block";
-            img.style.marginTop = "20px";
-
-            modalContent.appendChild(closeBtn);
-            modalContent.appendChild(document.createElement("br"));
-            modalContent.appendChild(img);
-            modal.appendChild(modalContent);
-
-            document.body.appendChild(modal);
-          } else {
-            showNotification(
-              "No payment screenshot found for this registration",
-              "error"
-            );
-          }
-        });
-      });
-    }
-  }
-
-  initFromUrl();
-
-  // Call admin features setup after page is loaded
-  setTimeout(addAdminFeatures, 1000);
 });
