@@ -266,6 +266,35 @@ function initScheduleTabs() {
   });
 }
 
+function validateContactForm(name, email, message) {
+  // Name validation
+  if (!name || name.length < 3) {
+    showNotification(
+      "Please enter a valid name (at least 3 characters)",
+      "error"
+    );
+    return false;
+  }
+
+  // Email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || !emailRegex.test(email)) {
+    showNotification("Please enter a valid email address", "error");
+    return false;
+  }
+
+  // Message validation
+  if (!message || message.length < 10) {
+    showNotification(
+      "Please enter a message with at least 10 characters",
+      "error"
+    );
+    return false;
+  }
+
+  return true;
+}
+
 // Form Handling
 function initForms() {
   const registerForm = document.getElementById("reservation-form");
@@ -308,13 +337,23 @@ function initForms() {
   if (registerForm) {
     registerForm.addEventListener("submit", (e) => {
       e.preventDefault();
-      handleFormSubmit(registerForm, "Thank you for registering!");
+      handleFormSubmit(registerForm, "");
     });
   }
 
   if (contactForm) {
     contactForm.addEventListener("submit", (e) => {
       e.preventDefault();
+
+      const name = document.getElementById("contact-name").value.trim();
+      const email = document.getElementById("contact-email").value.trim();
+      const message = document.getElementById("contact-message").value.trim();
+
+      // Validate form
+      if (!validateContactForm(name, email, message)) {
+        return;
+      }
+
       handleFormSubmit(
         contactForm,
         "Thank you for your message! We will get back to you shortly."
@@ -1024,3 +1063,5 @@ function showSelectionNotification(eventName) {
     }, 1500);
   }
 }
+
+contact;

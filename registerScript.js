@@ -100,6 +100,39 @@ document.addEventListener("DOMContentLoaded", function () {
   // Cache for storing registration counts to minimize Firestore reads
   const registrationCounts = {};
 
+  function validateReservationForm(name, email, phone, interest) {
+    // Name validation
+    if (!name || name.length < 3) {
+      showNotification(
+        "Please enter a valid name (at least 3 characters)",
+        "error"
+      );
+      return false;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
+      showNotification("Please enter a valid email address", "error");
+      return false;
+    }
+
+    // Phone validation
+    const phoneRegex = /^[6-9]\d{9}$/;
+    if (!phone || !phoneRegex.test(phone)) {
+      showNotification("Please enter a valid 10-digit phone number", "error");
+      return false;
+    }
+
+    // Event selection validation
+    if (!interest || !eventCodes[interest]) {
+      showNotification("Please select an event to participate in", "error");
+      return false;
+    }
+
+    return true;
+  }
+
   document
     .getElementById("reservation-form")
     .addEventListener("submit", async function (e) {
@@ -110,8 +143,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const phone = document.getElementById("reserve-phone").value.trim();
       const interest = document.getElementById("reserve-interest").value.trim();
 
-      if (!interest || !eventCodes[interest]) {
-        alert("⚠️ Please select a valid event.");
+      if (!validateReservationForm(name, email, phone, interest)) {
         return;
       }
 
@@ -287,7 +319,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const price = eventPrices[eventType] || 0;
     document.getElementById("payment-amount").textContent = `₹${price}`;
 
-    const duoEvents = ["Coding", "IT_Quiz", "Escape", "Startup"];
+    const duoEvents = ["Coding", "IT_Quiz", "Escape", "Startup", "VedaVision"];
     const squadEvents = ["Bgmi", "Free_Fire", "Treasure", "Ipl"];
 
     if (duoEvents.includes(eventType)) {
@@ -314,13 +346,70 @@ document.addEventListener("DOMContentLoaded", function () {
       `;
     }
   }
+  function validateRegistrationForm(teamName, members, eventType) {
+    // Team name validation
+    if (!teamName || teamName.length < 3) {
+      showNotification(
+        "Please enter a valid team name (at least 3 characters)",
+        "error"
+      );
+      return false;
+    }
 
+    // Member validation based on event type
+    const duoEvents = ["Coding", "IT_Quiz", "Escape", "Startup"];
+    const squadEvents = ["Bgmi", "Free_Fire", "Treasure", "Ipl"];
+
+    if (duoEvents.includes(eventType)) {
+      const member2 = document.getElementById("member2").value.trim();
+      if (!member2 || member2.length < 3) {
+        showNotification(
+          "Please enter valid details for Team Member 2",
+          "error"
+        );
+        return false;
+      }
+    } else if (squadEvents.includes(eventType)) {
+      const member2 = document.getElementById("member2").value.trim();
+      const member3 = document.getElementById("member3").value.trim();
+      const member4 = document.getElementById("member4").value.trim();
+
+      if (
+        !member2 ||
+        member2.length < 3 ||
+        !member3 ||
+        member3.length < 3 ||
+        !member4 ||
+        member4.length < 3
+      ) {
+        showNotification(
+          "Please enter valid details for all team members",
+          "error"
+        );
+        return false;
+      }
+    }
+
+    return true;
+  }
   // Pay Now button
   document.getElementById("pay-now-btn").addEventListener("click", function () {
-    // Validate team name
-    const teamName = document.getElementById("team-name").value;
-    if (!teamName) {
-      showNotification("Please enter your team name", "error");
+    const teamName = document.getElementById("team-name").value.trim();
+    const eventType = currentReservation.event;
+    const members = [document.getElementById("member1").value.trim()];
+
+    if (document.getElementById("member2")) {
+      members.push(document.getElementById("member2").value.trim());
+    }
+    if (document.getElementById("member3")) {
+      members.push(document.getElementById("member3").value.trim());
+    }
+    if (document.getElementById("member4")) {
+      members.push(document.getElementById("member4").value.trim());
+    }
+
+    // Validate form
+    if (!validateRegistrationForm(teamName, members, eventType)) {
       return;
     }
 
@@ -338,13 +427,34 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("payment-popup").style.display = "none";
   });
 
-  // File upload display and validation
+  // Constants for file validation
+  const ALLOWED_FILE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+  // Enhanced file upload display and validation
   document
     .getElementById("payment-screenshot")
-    .addEventListener("change", function (e) {
+    .addEventListener("change", async function (e) {
       const file = e.target.files[0];
+      const fileNameElement = document.getElementById("file-name");
+      const previewContainer =
+        document.getElementById("image-preview-container") ||
+        createPreviewContainer();
+
+      // Clear previous preview and messages
+      previewContainer.innerHTML = "";
+      fileNameElement.textContent = "No file chosen";
+
       if (!file) {
-        document.getElementById("file-name").textContent = "No file chosen";
+        return;
+      }
+
+      // Validate file type
+      if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+        showNotification(
+          "Please upload a valid image (JPEG, PNG, or WebP)",
+          "error"
+        );
+        this.value = "";
         return;
       }
 
@@ -356,25 +466,73 @@ document.addEventListener("DOMContentLoaded", function () {
           "error"
         );
         this.value = "";
-        document.getElementById("file-name").textContent = "No file chosen";
         return;
       }
 
-      // Check if it's an image
-      if (!file.type.match("image.*")) {
+      // Show loading state
+      fileNameElement.textContent = "Processing image...";
+      previewContainer.innerHTML = '<div class="loading-spinner"></div>';
+
+      try {
+        // Create preview and get dimensions
+        const preview = await createImagePreview(file, previewContainer);
+        fileNameElement.textContent = `${file.name} (${
+          Math.round(fileSizeMB * 100) / 100
+        }MB)`;
+
+        // Show dimensions info
+        const dimensionsInfo = document.createElement("div");
+        dimensionsInfo.className = "image-dimensions";
+        dimensionsInfo.textContent = `Dimensions: ${preview.naturalWidth}×${preview.naturalHeight}px`;
+        previewContainer.appendChild(dimensionsInfo);
+      } catch (error) {
+        console.error("Error processing image:", error);
         showNotification(
-          "Please upload an image file (jpg, png, etc)",
+          "Failed to process image. Please try another file.",
           "error"
         );
         this.value = "";
-        document.getElementById("file-name").textContent = "No file chosen";
-        return;
+        previewContainer.innerHTML = "";
       }
-
-      document.getElementById("file-name").textContent = file.name;
     });
 
-  // Compress image and convert to base64 for storage in Firestore
+  // Improved image preview creation
+  function createImagePreview(file, container) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+
+      reader.onload = function (event) {
+        const img = new Image();
+        img.src = event.target.result;
+
+        img.onload = function () {
+          container.innerHTML = "";
+
+          // Create preview image
+          const previewImg = document.createElement("img");
+          previewImg.src = event.target.result;
+          previewImg.style.maxWidth = "100%";
+          previewImg.style.maxHeight = "300px";
+          previewImg.style.borderRadius = "4px";
+          previewImg.alt = "Payment screenshot preview";
+
+          container.appendChild(previewImg);
+          resolve(img); // Resolve with the full image for dimensions
+        };
+
+        img.onerror = function () {
+          reject(new Error("Failed to load image"));
+        };
+      };
+
+      reader.onerror = function () {
+        reject(new Error("Failed to read file"));
+      };
+    });
+  }
+
+  // Enhanced image compression with better quality handling
   function compressImage(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -388,6 +546,15 @@ document.addEventListener("DOMContentLoaded", function () {
           // Calculate new dimensions while maintaining aspect ratio
           let width = img.width;
           let height = img.height;
+          let quality = COMPRESSION_QUALITY;
+
+          // Adjust quality based on original file size
+          const originalSizeMB = file.size / (1024 * 1024);
+          if (originalSizeMB < 1) {
+            quality = 0.8; // Higher quality for already small files
+          } else if (originalSizeMB > 3) {
+            quality = 0.5; // More compression for very large files
+          }
 
           if (width > MAX_IMAGE_WIDTH) {
             const ratio = MAX_IMAGE_WIDTH / width;
@@ -399,11 +566,21 @@ document.addEventListener("DOMContentLoaded", function () {
           canvas.width = width;
           canvas.height = height;
 
-          const ctx = canvas.getContext("2d");
+          // Higher quality canvas settings
+          const ctx = canvas.getContext("2d", { willReadFrequently: true });
+          ctx.imageSmoothingQuality = "high";
           ctx.drawImage(img, 0, 0, width, height);
 
           // Get compressed image as base64 string
-          const base64Image = canvas.toDataURL(file.type, COMPRESSION_QUALITY);
+          const base64Image = canvas.toDataURL(file.type, quality);
+
+          // Verify compressed size
+          const compressedSizeMB = (base64Image.length * 3) / 4 / (1024 * 1024);
+          if (compressedSizeMB > MAX_FILE_SIZE_MB) {
+            // If still too large, try again with lower quality
+            return resolve(compressImageWithQuality(file, quality * 0.7));
+          }
+
           resolve(base64Image);
         };
 
@@ -418,40 +595,97 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Copy UPI ID
-  document
-    .querySelector(".copy-upi-btn")
-    .addEventListener("click", function () {
-      navigator.clipboard.writeText("vidyutkshetra@upi").then(() => {
-        showNotification("UPI ID copied to clipboard!", "success");
-      });
-    });
+  // Helper function for recursive compression with lower quality
+  function compressImageWithQuality(file, quality) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = URL.createObjectURL(file);
 
-  // Payment form submission
+      img.onload = function () {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+
+        // Reduce dimensions further if needed
+        let width = img.width;
+        let height = img.height;
+        if (width > MAX_IMAGE_WIDTH * 0.8) {
+          width = MAX_IMAGE_WIDTH * 0.8;
+          height = (img.height / img.width) * width;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const base64Image = canvas.toDataURL(file.type, quality);
+        resolve(base64Image);
+      };
+    });
+  }
+
+  // Enhanced payment form submission with better validation
   document
     .getElementById("payment-form")
     .addEventListener("submit", async function (e) {
       e.preventDefault();
 
-      // Show loading indicator
-      showNotification("Processing payment...", "info");
-
-      // Get all team members
-      const teamMembers = [document.getElementById("member1").value];
-      if (document.getElementById("member2"))
-        teamMembers.push(document.getElementById("member2").value);
-      if (document.getElementById("member3"))
-        teamMembers.push(document.getElementById("member3").value);
-      if (document.getElementById("member4"))
-        teamMembers.push(document.getElementById("member4").value);
-
-      const teamName = document.getElementById("team-name").value;
-      const transactionId = document.getElementById("transaction-id").value;
+      // Validate form first
+      const teamName = document.getElementById("team-name").value.trim();
+      const transactionId = document
+        .getElementById("transaction-id")
+        .value.trim();
       const paymentScreenshotFile =
         document.getElementById("payment-screenshot").files[0];
 
+      if (!teamName || teamName.length < 3) {
+        showNotification(
+          "Please enter a valid team name (min 3 characters)",
+          "error"
+        );
+        document.getElementById("team-name").focus();
+        return;
+      }
+
+      if (!transactionId || transactionId.length < 6) {
+        showNotification(
+          "Please enter a valid transaction ID (min 6 characters)",
+          "error"
+        );
+        document.getElementById("transaction-id").focus();
+        return;
+      }
+
+      if (!paymentScreenshotFile) {
+        showNotification("Please upload a payment screenshot", "error");
+        return;
+      }
+
+      // Show loading state
+      const submitBtn = this.querySelector('button[type="submit"]');
+      const originalBtnText = submitBtn.innerHTML;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML =
+        '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
       try {
-        // Store data to update
+        // Get all team members with validation
+        const teamMembers = [document.getElementById("member1").value.trim()];
+        const memberFields = ["member2", "member3", "member4"];
+
+        for (const field of memberFields) {
+          const element = document.getElementById(field);
+          if (element) {
+            const value = element.value.trim();
+            if (!value || value.length < 3) {
+              throw new Error(
+                `Please enter valid details for all team members (min 3 characters each)`
+              );
+            }
+            teamMembers.push(value);
+          }
+        }
+
+        // Prepare update data
         const updateData = {
           team: teamName,
           members: teamMembers,
@@ -460,40 +694,80 @@ document.addEventListener("DOMContentLoaded", function () {
           status: "p", // p = paid/pending confirmation
         };
 
-        // Process and store screenshot if provided
-        if (paymentScreenshotFile) {
-          // Show progress indicator
-          showNotification("Processing image...", "info");
+        // Process and store screenshot
+        showNotification("Compressing and uploading image...", "info");
+        const base64Image = await compressImage(paymentScreenshotFile);
+        updateData.paymentScreenshot = base64Image;
 
-          // Compress image and convert to base64
-          const base64Image = await compressImage(paymentScreenshotFile);
-
-          // Store base64 image directly in document
-          updateData.paymentScreenshot = base64Image;
-        }
-
-        // Update the existing document with payment information
+        // Update Firestore document
         const docRef = doc(db, REGISTRATIONS_COLLECTION, currentReservation.id);
         await updateDoc(docRef, updateData);
 
-        // Show payment success with group link
+        // Show success
         showPaymentSuccess(currentReservation.event);
 
         // Reset forms
         document.getElementById("reservation-form").reset();
         document.getElementById("registration-form").reset();
-        document.getElementById("payment-form").reset();
+        this.reset();
         document.getElementById("file-name").textContent = "No file chosen";
+        document.getElementById("image-preview-container").innerHTML = "";
 
         // Hide payment popup
         document.getElementById("payment-popup").style.display = "none";
       } catch (error) {
-        console.error("Error processing payment:", error);
+        console.error("Payment processing error:", error);
         showNotification(
-          "Payment processing failed. Please try again.",
+          error.message || "Payment processing failed. Please try again.",
           "error"
         );
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
       }
+    });
+
+  // Helper function to create preview container
+  function createPreviewContainer() {
+    const container = document.createElement("div");
+    container.id = "image-preview-container";
+    container.style.margin = "10px 0";
+    container.style.textAlign = "center";
+
+    const fileInput = document.getElementById("payment-screenshot");
+    fileInput.parentNode.insertBefore(container, fileInput.nextSibling);
+
+    return container;
+  }
+
+  // Enhanced UPI ID copy functionality
+  document
+    .querySelector(".copy-upi-btn")
+    .addEventListener("click", function () {
+      const upiId = "vidyutkshetra@upi";
+
+      navigator.clipboard
+        .writeText(upiId)
+        .then(() => {
+          // Visual feedback
+          const btn = this;
+          btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+          btn.style.backgroundColor = "#4CAF50";
+
+          setTimeout(() => {
+            btn.innerHTML = '<i class="far fa-copy"></i>';
+            btn.style.backgroundColor = "";
+          }, 2000);
+
+          showNotification("UPI ID copied to clipboard!", "success");
+        })
+        .catch((err) => {
+          console.error("Failed to copy UPI ID:", err);
+          showNotification(
+            "Failed to copy UPI ID. Please copy manually.",
+            "error"
+          );
+        });
     });
 
   // Show payment success with group link
