@@ -98,13 +98,33 @@ document.addEventListener("DOMContentLoaded", function () {
   let currentReservation = {};
   const registrationCounts = {};
 
-  // DOM Initialization
   initializeForms();
   showCheckReservationForm();
 
-  // Core Functions
+  function handleRegisterNow(e) {
+    e.preventDefault();
+
+    // Hide the confirmation and show the registration form
+    document.getElementById("reservation-confirmation").style.display = "none";
+
+    // Setup the registration form with the current reservation data
+    setupRegistrationForm(currentReservation);
+
+    // Show the registration form
+    document.getElementById("register").style.display = "block";
+
+    const registerSection = document.getElementById("register");
+    if (registerSection) {
+      const headerHeight = document.querySelector(".header")?.offsetHeight || 0;
+      const targetPosition = registerSection.offsetTop - headerHeight - 20;
+
+      window.scrollTo({
+        top: targetPosition,
+        behavior: "smooth",
+      });
+    }
+  }
   function initializeForms() {
-    // Check Existing Reservation Form
     document
       .getElementById("check-reservation-form")
       .addEventListener("submit", handleCheckReservation);
@@ -118,6 +138,9 @@ document.addEventListener("DOMContentLoaded", function () {
       .addEventListener("submit", handleNewReservation);
 
     // Registration Form
+    document
+      .getElementById("register-now-btn")
+      .addEventListener("click", handleRegisterNow);
     document
       .getElementById("pay-now-btn")
       .addEventListener("click", handlePayNow);
