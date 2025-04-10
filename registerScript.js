@@ -124,6 +124,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     }
   }
+
   function initializeForms() {
     document
       .getElementById("check-reservation-form")
@@ -136,6 +137,12 @@ document.addEventListener("DOMContentLoaded", function () {
     document
       .getElementById("reservation-form")
       .addEventListener("submit", handleNewReservation);
+
+    document.addEventListener("click", function (e) {
+      if (e.target.closest("#copy-key-btn")) {
+        copyUniqueKey(e);
+      }
+    });
 
     // Registration Form
     document
@@ -158,6 +165,68 @@ document.addEventListener("DOMContentLoaded", function () {
     document
       .querySelector(".copy-upi-btn")
       .addEventListener("click", copyUPIId);
+
+    initPaymentPopup();
+    document.addEventListener("click", function (e) {
+      // Handle QR code expand
+      if (
+        e.target.closest(".qr-code-overlay") ||
+        e.target.closest(".qr-code-overlay i")
+      ) {
+        expandQRCode();
+      }
+
+      // Handle modal close
+      if (
+        e.target.classList.contains("qr-modal") ||
+        e.target.classList.contains("qr-modal-close")
+      ) {
+        closeQRModal();
+      }
+    });
+  }
+
+  function initPaymentPopup() {
+    // Close payment popup when clicking close button
+    document
+      .querySelector(".payment-modal .close-btn")
+      .addEventListener("click", closePaymentPopup);
+
+    // Close payment popup when clicking outside content
+    document
+      .getElementById("payment-popup")
+      .addEventListener("click", function (e) {
+        if (e.target === this) {
+          closePaymentPopup();
+        }
+      });
+
+    // Close with ESC key
+    document.addEventListener("keydown", function (e) {
+      if (
+        e.key === "Escape" &&
+        document.getElementById("payment-popup").style.display === "flex"
+      ) {
+        closePaymentPopup();
+      }
+    });
+  }
+
+  function closePaymentPopup() {
+    const paymentPopup = document.getElementById("payment-popup");
+    paymentPopup.style.display = "none";
+    document.body.style.overflow = "";
+  }
+
+  // Update your existing payment popup show function
+  function showPaymentPopup() {
+    document.getElementById("payment-popup").style.display = "flex";
+    document.body.style.overflow = "hidden";
+
+    // Focus on close button for accessibility
+    setTimeout(() => {
+      document.querySelector(".payment-modal .close-btn").focus();
+    }, 100);
   }
 
   // Form Visibility Control
@@ -463,10 +532,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const phoneRegex = /^[6-9]\d{9}$/;
     if (!phone || !phoneRegex.test(phone)) {
-      showNotification(
-        "Please enter a valid 10-digit Indian phone number",
-        "error"
-      );
+      showNotification("Please enter a valid 10-digit phone number", "error");
       return false;
     }
 
@@ -482,6 +548,15 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!teamName || teamName.length < 3) {
       showNotification(
         "Please enter a valid team name (min 3 characters)",
+        "error"
+      );
+      return false;
+    }
+
+    const invalidChars = teamName.match(/[^a-zA-Z\s\-'.]/g);
+    if (invalidChars) {
+      showNotification(
+        "Team name can only contain letters, spaces, hyphens, apostrophes, and periods",
         "error"
       );
       return false;
@@ -783,6 +858,59 @@ document.addEventListener("DOMContentLoaded", function () {
     }, 10000);
   }
 
+  function copyUniqueKey(e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const uniqueKeyElement = document.getElementById("unique-key-value");
+    if (!uniqueKeyElement) {
+      console.error("Unique key element not found");
+      return;
+    }
+
+    const uniqueKey = uniqueKeyElement.textContent;
+    if (!uniqueKey) {
+      showNotification("No unique key found to copy", "error");
+      return;
+    }
+
+    navigator.clipboard
+      .writeText(uniqueKey)
+      .then(() => {
+        const btn = e.target.closest("#copy-key-btn");
+        if (btn) {
+          const icon = btn.querySelector("i");
+          if (icon) {
+            icon.classList.remove("fa-copy");
+            icon.classList.add("fa-check");
+            setTimeout(() => {
+              icon.classList.remove("fa-check");
+              icon.classList.add("fa-copy");
+            }, 2000);
+          }
+        }
+        showNotification("Unique key copied to clipboard!", "success");
+      })
+      .catch((err) => {
+        console.error("Failed to copy text: ", err);
+        // Fallback for older browsers
+        const textArea = document.createElement("textarea");
+        textArea.value = uniqueKey;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand("copy");
+          showNotification("Unique key copied to clipboard!", "success");
+        } catch (err) {
+          showNotification(
+            "Failed to copy key. Please copy manually.",
+            "error"
+          );
+        }
+        document.body.removeChild(textArea);
+      });
+  }
+
   function copyUPIId() {
     const upiId = "vidyutkshetra@upi";
     navigator.clipboard
@@ -808,6 +936,45 @@ document.addEventListener("DOMContentLoaded", function () {
       });
   }
 
+  function expandQRCode() {
+    const qrImgSrc = document.querySelector(".qr-code-img").src;
+
+    // Create or update modal
+    let modal = document.querySelector(".qr-modal");
+    if (!modal) {
+      modal = document.createElement("div");
+      modal.className = "qr-modal";
+      modal.innerHTML = `
+        <span class="qr-modal-close">&times;</span>
+        <div class="qr-modal-content">
+          <img src="${qrImgSrc}" class="qr-modal-img" alt="Expanded QR Code">
+          <p class="qr-modal-note">Scan this QR code with any UPI app</p>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    } else {
+      modal.querySelector(".qr-modal-img").src = qrImgSrc;
+    }
+
+    // Show modal
+    modal.style.display = "flex";
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeQRModal() {
+    const modal = document.querySelector(".qr-modal");
+    if (modal) {
+      modal.style.display = "none";
+      document.body.style.overflow = "";
+    }
+  }
+
+  // Close modal with ESC key
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") {
+      closeQRModal();
+    }
+  });
   function createPreviewContainer() {
     const container = document.createElement("div");
     container.id = "image-preview-container";

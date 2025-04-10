@@ -630,7 +630,7 @@ function initEventPopups() {
   const eventsData = {
     "HackSutra (Coding & debugging)": {
       image: "./Images/Quiz.jpg",
-      date: "April 16, 2025",
+      date: "April 22, 2025",
       duration: "1.5 hours (11:00AM - 12:30PM)",
       team: "2 members",
       registrationValue: "Coding",
@@ -647,7 +647,7 @@ function initEventPopups() {
     },
     "KuruKshetra 1 (BGMI)": {
       image: "./Images/BGMI.jpg",
-      date: "April 16, 2025",
+      date: "April 22, 2025",
       duration: "2 hours (11:00AM - 1:00PM)",
       team: "4 members",
       registrationValue: "Bgmi",
@@ -670,8 +670,8 @@ function initEventPopups() {
     },
     "Sanjeevini Quest (Treasure Hunt)": {
       image: "./Images/TreasureHunt.jpg",
-      date: "April 17, 2025",
-      duration: "2.5 hours (2:00PM - 4:30PM)",
+      date: "April 23, 2025",
+      duration: "2.5 hours (12:30AM - 3:000PM)",
       team: "2-4 members",
       registrationValue: "Treasure",
       groupLink: "https://chat.whatsapp.com/Em43SYWFqtr0CJatpRmFGi",
@@ -690,8 +690,8 @@ function initEventPopups() {
     },
     "RajaSuya Yaga (IPL Auction)": {
       image: "./Images/IPLAuction.jpg",
-      date: "April 16, 2025",
-      duration: "4.5 hours (12:00PM - 4:30PM)",
+      date: "April 22, 2025",
+      duration: "4.5 hours (12:00 noon - 4:30PM)",
       team: "4 members",
       registrationValue: "Ipl",
       groupLink: "https://chat.whatsapp.com/Em43SYWFqtr0CJatpRmFGi",
@@ -710,7 +710,7 @@ function initEventPopups() {
     },
     "Yaksha Prashna (IT Quiz)": {
       image: "./Images/ITQuiz.jpg",
-      date: "April 17, 2025",
+      date: "April 23, 2025",
       duration: "2 hours (10:00AM - 12:00 Noon)",
       team: "2 members",
       registrationValue: "IT_Quiz",
@@ -731,8 +731,8 @@ function initEventPopups() {
     },
     "KuruKshetra 2 (Free Fire)": {
       image: "./Images/FreeFire.jpg",
-      date: "April 17, 2025",
-      duration: "3 hours (10:00AM - 1:00PM)",
+      date: "April 23, 2025",
+      duration: "2 hours (10:00AM - 12:00 noon)",
       team: "4 members",
       registrationValue: "Free_Fire",
       groupLink: "https://chat.whatsapp.com/Em43SYWFqtr0CJatpRmFGi",
@@ -754,8 +754,8 @@ function initEventPopups() {
     },
     "Chakravyuha (Escape Room)": {
       image: "./Images/EscapeRoom.jpg",
-      date: "April 16, 2025",
-      duration: "2 hours (11:00AM - 1:00PM)",
+      date: "April 22, 2025",
+      duration: "1.5hour (1.30PM - 3:00PM)",
       team: "2 members",
       registrationValue: "Escape",
       groupLink: "https://chat.whatsapp.com/Em43SYWFqtr0CJatpRmFGi",
@@ -773,8 +773,8 @@ function initEventPopups() {
     },
     "DevaJanma (Start Up)": {
       image: "./Images/StartUp.jpg",
-      date: "April 17, 2025",
-      duration: "1.5 hours (11:30AM - 1:00PM)",
+      date: "April 23, 2025",
+      duration: "2 hours (10:00AM - 12:00 noon)",
       team: "2 members",
       registrationValue: "Startup",
       groupLink: "https://chat.whatsapp.com/Em43SYWFqtr0CJatpRmFGi",
@@ -796,7 +796,7 @@ function initEventPopups() {
     },
     "Veda Vision (Photography/Videography)": {
       image: "./Images/VedaVision.jpg",
-      date: "April 17, 2025",
+      date: "April 22, 2025",
       duration: "All Day Event",
       team: "1-2 members",
       registrationValue: "VedaVision",
@@ -925,78 +925,12 @@ function initEventPopups() {
       }
     }
 
-    const registerBtn = document.querySelector(".event-popup-cta .btn");
-    if (registerBtn) {
-      registerBtn.setAttribute("data-event", eventData.registrationValue);
-      registerBtn.textContent = "Reserve Your Slot";
-      registerBtn.classList.add("register-from-popup");
-    }
-
     const eventPopup = document.getElementById("eventPopup");
     if (eventPopup) {
       eventPopup.classList.add("active");
       document.body.style.overflow = "hidden";
     }
   }
-
-  function scrollToRegistration(eventValue) {
-    const eventPopup = document.getElementById("eventPopup");
-    if (eventPopup && eventPopup.classList.contains("active")) {
-      eventPopup.classList.remove("active");
-      document.body.style.overflow = "";
-    }
-
-    // Find registration section
-    const registerSection = document.getElementById("reserve");
-    if (registerSection) {
-      const headerHeight = document.querySelector(".header")?.offsetHeight || 0;
-      const targetPosition = registerSection.offsetTop - headerHeight - 20;
-
-      window.scrollTo({
-        top: targetPosition,
-        behavior: "smooth",
-      });
-
-      setTimeout(() => {
-        const interestSelect = document.getElementById("reserve-interest");
-        if (interestSelect) {
-          interestSelect.value = eventValue;
-
-          const event = new Event("change");
-          interestSelect.dispatchEvent(event);
-
-          const selectedOption = Array.from(interestSelect.options).find(
-            (option) => option.value === eventValue
-          );
-
-          if (selectedOption) {
-            const eventName = selectedOption.text;
-            showSelectionNotification(eventName);
-          }
-
-          const firstInput = document.querySelector("# input");
-          if (firstInput) {
-            firstInput.focus();
-          }
-        }
-      }, 800);
-    }
-  }
-
-  // Add click handler for register buttons
-  document.addEventListener("click", function (e) {
-    if (
-      e.target.classList.contains("register-from-popup") ||
-      (e.target.closest(".btn") && e.target.closest(".event-popup-cta"))
-    ) {
-      e.preventDefault();
-      const eventValue =
-        e.target.getAttribute("data-event") ||
-        e.target.closest(".btn").getAttribute("data-event");
-      scrollToRegistration(eventValue);
-    }
-  });
-
   // Close popup handlers
   closePopup.addEventListener("click", () => {
     eventPopup.classList.remove("active");
@@ -1016,52 +950,6 @@ function initEventPopups() {
       document.body.style.overflow = "";
     }
   });
-}
-
-function showSelectionNotification(eventName) {
-  const existingNotif = document.querySelector(".selection-notification");
-  if (existingNotif) {
-    existingNotif.classList.remove("show");
-    setTimeout(() => existingNotif.remove(), 300);
-  }
-
-  const notification = document.createElement("div");
-  notification.className = "selection-notification";
-  notification.innerHTML = `
-    <span>✓</span>
-    <p>"${eventName}" has been selected in the registration form.</p>
-  `;
-  document.body.appendChild(notification);
-
-  notification.setAttribute("role", "alert");
-  notification.setAttribute("aria-live", "polite");
-
-  setTimeout(() => {
-    notification.classList.add("show");
-  }, 100);
-
-  const dismissTimer = setTimeout(() => {
-    notification.classList.remove("show");
-    setTimeout(() => {
-      notification.remove();
-    }, 300);
-  }, 5000);
-
-  notification.addEventListener("click", () => {
-    clearTimeout(dismissTimer);
-    notification.classList.remove("show");
-    setTimeout(() => {
-      notification.remove();
-    }, 300);
-  });
-
-  const interestSelect = document.getElementById("reserve-interest");
-  if (interestSelect) {
-    interestSelect.classList.add("highlight");
-    setTimeout(() => {
-      interestSelect.classList.remove("highlight");
-    }, 1500);
-  }
 }
 
 contact;
