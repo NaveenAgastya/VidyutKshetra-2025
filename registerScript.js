@@ -271,6 +271,7 @@ document.addEventListener("DOMContentLoaded", function () {
         name: registration.name,
         email: registration.email,
         phone: registration.phone,
+        College: registration.clg_name,
         event: registration.event,
         eventName: registration.eventName,
         price: registration.amount,
@@ -308,6 +309,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const email = document.getElementById("reserve-email").value.trim();
     const phone = document.getElementById("reserve-phone").value.trim();
     const interest = document.getElementById("reserve-interest").value.trim();
+    const College= document.getElementById("clg_name").value.trim();
 
     try {
       submitBtn.disabled = true;
@@ -324,6 +326,7 @@ document.addEventListener("DOMContentLoaded", function () {
         name,
         email,
         phone,
+        College,
         event: interest,
         eventName: eventInfo.name,
         uniqueID,
@@ -338,6 +341,7 @@ document.addEventListener("DOMContentLoaded", function () {
         name,
         email,
         phone,
+        College,
         event: interest,
         eventName: eventInfo.name,
         price: eventPrices[interest],
@@ -766,6 +770,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("reg-name").value = reservation.name;
     document.getElementById("reg-email").value = reservation.email;
     document.getElementById("reg-phone").value = reservation.phone;
+    document.getElementById("clg_name").value = reservation.eventName;
     document.getElementById("reg-event").value = reservation.eventName;
     document.getElementById("member1").value = reservation.name;
 

@@ -101,6 +101,7 @@ async function loadRegistrationsFromFirebase() {
         name: data.name,
         email: data.email,
         phone: data.phone,
+        college: data.clg_name, // Change from College to college and use data.clg_name
         event: data.event,
         eventName: getEventFullName(data.event),
         team: data.team,
@@ -189,6 +190,7 @@ async function applyFilters() {
         name: data.name,
         email: data.email,
         phone: data.phone,
+        college:data.clg_name,
         event: data.event,
         eventName: getEventFullName(data.event),
         team: data.team,
@@ -254,7 +256,7 @@ function renderRegistrationsTable(registrations) {
   if (registrations.length === 0) {
     tableBody.innerHTML = `
       <tr>
-        <td colspan="7" style="text-align: center; padding: 20px;">No registrations found</td>
+        <td colspan="8" style="text-align: center; padding: 20px;">No registrations found</td>
       </tr>
     `;
     return;
@@ -269,6 +271,7 @@ function renderRegistrationsTable(registrations) {
     row.innerHTML = `
       <td>${reg.uniqueID}</td>
       <td>${reg.name}</td>
+      <td>${reg.college || "Not provided"}</td>
       <td>${reg.eventName}</td>
       <td>${reg.team || "Individual"}</td>
       <td>₹${reg.amount || 0}</td>
@@ -342,6 +345,10 @@ function showRegistrationDetails(registration) {
     <div class="detail-group">
       <label>Phone</label>
       <p>${registration.phone || "Not provided"}</p>
+    </div>
+    <div class="detail-group">
+      <label>College</label>
+      <p>${registration.college || "Not provided"}</p>
     </div>
     <div class="detail-group">
       <label>Event</label>
