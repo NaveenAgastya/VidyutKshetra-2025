@@ -204,11 +204,57 @@ async function applyFilters() {
     });
     
     renderRegistrationsTable(filteredRegistrations);
+    // Attach export data to window for export button
+    window.filteredExportData = filteredRegistrations;
     showNotification(`Showing ${filteredRegistrations.length} filtered registrations`, "success");
   } catch (error) {
     console.error("Error applying filters:", error);
     showNotification("Failed to apply filters", "error");
   }
+}
+
+
+function exportRegistrationsToCSV(registrations) {
+  if (!registrations || registrations.length === 0) {
+    showNotification("No data to export", "info");
+    return;
+  }
+
+  const headers = [
+    "Registration ID", "Name", "Email", "Phone", "College",
+    "Event", "Team", "Members", "Amount", "Status", "Transaction ID", "Registration Date"
+  ];
+
+  const csvRows = [
+    headers.join(",")
+  ];
+
+  registrations.forEach(reg => {
+    const row = [
+      `"${reg.uniqueID}"`,
+      `"${reg.name}"`,
+      `"${reg.email}"`,
+      `"${reg.phone || ''}"`,
+      `"${reg.college || ''}"`,
+      `"${reg.eventName}"`,
+      `"${reg.team || 'Individual'}"`,
+      `"${(reg.members || []).join('; ')}"`,
+      `"₹${reg.amount || 0}"`,
+      `"${reg.status}"`,
+      `"${reg.txnId || ''}"`,
+      `"${reg.timestamp.toLocaleString()}"`
+    ];
+    csvRows.push(row.join(","));
+  });
+
+  const csvContent = csvRows.join("\n");
+  const blob = new Blob([csvContent], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `registrations_${new Date().toISOString()}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 async function updateRegistrationStatus(registrationId, newStatus) {
@@ -492,6 +538,14 @@ async function rejectPayment() {
     if (applyFiltersBtn) {
       applyFiltersBtn.addEventListener("click", applyFilters);
     }
+
+    const exportBtn = document.getElementById("export-csv");
+if (exportBtn) {
+  exportBtn.addEventListener("click", () => {
+    exportRegistrationsToCSV(window.filteredExportData || []);
+  });
+}
+
     
     // Modal close button
     const closeBtn = document.querySelector(".close");
