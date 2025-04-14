@@ -1,0 +1,26 @@
+{
+  "name": "VidyutKshetra 2025",
+  "short_name": "VK2025",
+  "description": "Welcome to VidyutKshetra 2025, the flagship technical festival organized by the Department of BCA at Sri Jagadguru Renukacharya College",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ff6b6b",
+  "icons": [
+    {
+      "src": "/Images/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/Images/logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/Images/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

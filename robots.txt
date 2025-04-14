@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Allow: /sitemap.xml
+Allow: /Images/
+Allow: /CSS/
+Allow: /JS/
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /private/
+Disallow: /temp/
+
+# Sitemap location
+Sitemap: https://naveenagastya.github.io/VidyutKshetra-2025/sitemap.xml 
