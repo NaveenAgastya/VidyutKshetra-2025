@@ -607,17 +607,49 @@
 
       <!---------------------Reserveration form ---------------->
       <section id="check-reservation" class="register">
-        <h2 class="section-title">Already Have a Reservation?</h2>
+        <h2 class="section-title">Check Your Reservation</h2>
         <div class="register-form">
+          <div class="form-instructions">
+            <div class="instruction-card">
+              <div class="instruction-icon">
+                <i class="fas fa-search"></i>
+              </div>
+              <h3>Already Registered?</h3>
+              <p>If you've already created a reservation, enter your unique ID below to check your status.</p>
+            </div>
+            <div class="instruction-card">
+              <div class="instruction-icon">
+                <i class="fas fa-user-plus"></i>
+              </div>
+              <h3>New Participant?</h3>
+              <p>If you haven't registered yet, click the "Create New Reservation" button below to get started.</p>
+            </div>
+          </div>
+          
           <form id="check-reservation-form">
             <div class="form-group">
               <label for="existing-unique-id">Enter Your Unique ID</label>
-              <input type="text" id="existing-unique-id" name="unique-id" required>
+              <div class="input-with-icon">
+                <i class="fas fa-key"></i>
+                <input type="text" id="existing-unique-id" name="unique-id" placeholder="e.g., VK2025-12345" required>
+              </div>
+              <p class="input-help">Your unique ID was sent to your email when you created your reservation</p>
             </div>
-            <button type="submit" class="submit-btn">Check Reservation</button>
+            <button type="submit" class="submit-btn">
+              <i class="fas fa-search"></i> Check Reservation
+            </button>
           </form>
-          <p class="or-divider">- OR -</p>
-          <button id="new-reservation-btn" class="btn">Create New Reservation</button>
+          
+          <div class="form-divider">
+            <span>OR</span>
+          </div>
+          
+          <div class="new-reservation-cta">
+            <p>Don't have a reservation yet?</p>
+            <button id="new-reservation-btn" class="btn btn-primary">
+              <i class="fas fa-plus-circle"></i> Create New Reservation
+            </button>
+          </div>
         </div>
       </section>
 

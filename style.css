@@ -1986,14 +1986,14 @@ input.highlight {
   cursor: pointer;
 }
 
-.roller{
+.roller {
   border-radius: 10px;
   overflow: hidden;
   position: relative;
   cursor: pointer;
 }
 
-.roller img{
+.roller img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -2027,11 +2027,11 @@ input.highlight {
   opacity: 1;
 }
 
-.roller:hover img{
+.roller:hover img {
   transform: scale(1.1);
 }
 
-.roller::after{
+.roller::after {
   content: "";
   position: absolute;
   top: 0;
@@ -2043,7 +2043,7 @@ input.highlight {
   transition: opacity 0.3s;
 }
 
-.roller:hover::after{
+.roller:hover::after {
   opacity: 1;
 }
 
@@ -2115,112 +2115,214 @@ input.highlight {
 /* register */
 
 .register {
-  background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),
-    url("") center/cover fixed;
-  text-align: center;
-  position: relative;
-}
-
-.register::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle at 50% 50%, transparent 0%, #121212 90%);
-  opacity: 0.8;
-  pointer-events: none;
+  padding: 6rem 2rem;
+  background: linear-gradient(135deg, var(--dark-bg) 0%, var(--darker-bg) 100%);
 }
 
 .register-form {
-  max-width: 600px;
+  max-width: 800px;
   margin: 0 auto;
-  background: rgba(26, 26, 26, 0.8);
   padding: 2rem;
-  border-radius: 10px;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 215, 0, 0.2);
-  position: relative;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.form-instructions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2.5rem;
+}
+
+.instruction-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.instruction-card:hover {
+  transform: translateY(-5px);
+}
+
+.instruction-icon {
+  font-size: 2.5rem;
+  color: var(--accent-color);
+  margin-bottom: 1rem;
+}
+
+.instruction-card h3 {
+  color: var(--text-color);
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.instruction-card p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
 }
 
 .form-group {
   margin-bottom: 1.5rem;
-  text-align: left;
 }
 
-label {
+.form-group label {
   display: block;
   margin-bottom: 0.5rem;
+  color: var(--text-color);
   font-size: 1rem;
-  color: var(--light);
 }
 
-input,
-select,
-textarea {
+.input-with-icon {
+  position: relative;
+}
+
+.input-with-icon i {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+}
+
+.input-with-icon input {
   width: 100%;
-  padding: 0.8rem;
-  border-radius: 5px;
-  background: #2a2a2a;
-  border: 1px solid rgba(255, 215, 0, 0.2);
-  color: white;
-  font-family: var(--font-text);
-  transition: border-color 0.3s, box-shadow 0.3s;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  color: var(--text-color);
+  font-size: 1rem;
+  transition: all 0.3s ease;
 }
 
-input:focus,
-select:focus,
-textarea:focus {
+.input-with-icon input:focus {
   outline: none;
-  border-color: var(--gold);
-  box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(106, 27, 154, 0.2);
+}
+
+.input-help {
+  margin-top: 0.5rem;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-style: italic;
 }
 
 .submit-btn {
-  display: inline-block;
-  padding: 1rem 2rem;
-  background: linear-gradient(135deg, var(--primary), var(--dark));
+  width: 100%;
+  padding: 0.75rem;
+  background: linear-gradient(
+    45deg,
+    var(--accent-color),
+    var(--secondary-color)
+  );
   color: white;
   border: none;
-  border-radius: 30px;
+  border-radius: 0.5rem;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  border: 2px solid var(--gold);
-  box-shadow: 0 5px 15px rgba(106, 27, 154, 0.4);
-  position: relative;
-  overflow: hidden;
-}
-
-.submit-btn::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.2),
-    transparent
-  );
-  transition: all 0.6s;
-}
-
-.submit-btn:hover::before {
-  left: 100%;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .submit-btn:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(106, 27, 154, 0.6);
-  background: linear-gradient(135deg, var(--dark), var(--primary));
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.form-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 2rem 0;
+}
+
+.form-divider::before,
+.form-divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.form-divider span {
+  padding: 0 1rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.new-reservation-cta {
+  text-align: center;
+}
+
+.new-reservation-cta p {
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+#new-reservation-btn {
+  width: 100%;
+  padding: 0.75rem;
+  background: linear-gradient(
+    45deg,
+    var(--accent-color),
+    var(--secondary-color)
+  );
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+#new-reservation-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  background: var(--secondary-color);
+}
+
+@media (max-width: 768px) {
+  .register {
+    padding: 4rem 1rem;
+  }
+
+  .register-form {
+    padding: 1.5rem;
+  }
+
+  .form-instructions {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .instruction-card {
+    padding: 1.25rem;
+  }
+
+  .instruction-icon {
+    font-size: 2rem;
+  }
+
+  #new-reservation-btn {
+    width: 100%;
+  }
 }
 
 /* Contact Section */
@@ -3052,5 +3154,56 @@ footer::before {
     bottom: 1.5rem;
     right: 1.5rem;
     font-size: 1.2rem;
+  }
+}
+
+.new-reservation-cta {
+  text-align: center;
+  margin-top: 1.5rem;
+}
+
+.new-reservation-cta p {
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+
+#new-reservation-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+#new-reservation-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  background: var(--secondary-color);
+}
+
+@media (max-width: 768px) {
+  .new-reservation-cta {
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+  }
+
+  #new-reservation-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+  }
+
+  .new-reservation-cta p {
+    font-size: 1rem;
+    margin-bottom: 1rem;
   }
 }
